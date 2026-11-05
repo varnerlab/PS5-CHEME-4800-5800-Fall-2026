@@ -72,11 +72,12 @@ function load_screen(directory::String = joinpath(@__DIR__, "..", "data"))
     for i in 1:NUMBER_OF_ALCOHOLS
         for a in 1:number_of_conditions
             line_number = line_number + 1;
-            fields = split(lines[line_number], ",");
+            fields = split(lines[line_number], ","); # alcohol, SMILES, sulfonyl fluoride, base, yield
             if length(fields) != 5 || fields[3] != sulfonyl_fluorides[a] || fields[4] != bases[a]
                 error("data file $DATA_FILE: line $line_number is not the expected reaction (alcohol $i, condition $(conditions[a])); it should hold 740 reactions in order. Download the assignment again.");
             end
             if a == 1
+                # String(...) copies each piece of the line into a string of its own -
                 push!(alcohols, String(fields[1])); # the alcohol's ID, such as s1
                 push!(smiles, String(fields[2]));   # the alcohol's structure
             end

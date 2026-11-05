@@ -21,7 +21,7 @@ const BLOCK_SIZES = [1, 6, 24, 96, 480]; # wells per block compared in plate-siz
 const SCREEN_SEEDS = 1:100;   # one screen per seed for each block size
 const DRAWS_SUMMARY = 10_000; # rounds of probability_best for a single screen
 const DRAWS_AVERAGE = 2_000;  # rounds of probability_best for each of the 100 screens
-const PBSF_FREE = 1:16;      # columns of the 16 conditions without PBSF
+const PBSF_FREE = 1:16;       # columns of the 16 conditions without PBSF
 
 # Every file write_outputs creates; the checker clears exactly these before a run -
 const REPORT_FILES = ["conditions.csv", "screen-summary.csv", "posteriors.png",
@@ -32,27 +32,25 @@ const REPORT_FILES = ["conditions.csv", "screen-summary.csv", "posteriors.png",
 
 Run the screens with the student's functions and write every report.
 
-# Arguments
-
+### Arguments
 - `assignment`: the loaded `FluorinationScreen` module, including the student's four
   completed functions.
-- `directory`: the output folder; create it if needed.
+- `directory::String`: the output folder; it is created if needed.
 
-# Returns and files
+### Returns
+The named tuple `(pick, pick_probability, pbsf_free_pick)`: the name of the main
+screen's pick, its probability of being best, and the name of the PBSF-free screen's
+pick. The function also writes or overwrites the six files in `REPORT_FILES` and
+prints its progress and a summary.
 
-Return `(pick, pick_probability, pbsf_free_pick)`: the names of the main screen's pick
-and of the PBSF-free screen's pick, and the main pick's probability of being best.
-Write or overwrite the six files in `REPORT_FILES`. Print progress and a summary.
-
-# Errors
-
-Throw `ErrorException` if a student function returns results of the wrong size.
-Errors from the student functions, file writing, or plotting propagate.
+### Errors
+Throws an `ErrorException` if a student function returns results of the wrong size.
+Errors from the student functions, file writing, or plotting are passed on.
 """
 function write_outputs(assignment, directory)
 
     # Call each student function once on a tiny input, so an unfinished one stops here -
-    tiny = reshape([60.0, 40.0], 2, 1);
+    tiny = reshape([60.0, 40.0], 2, 1); # a 2 × 1 yield table: two alcohols, one condition
     assignment.success_fractions(tiny);
     tiny_rng = MersenneTwister(1);
     tiny_world = a -> assignment.run_reaction(tiny, a, tiny_rng);
@@ -75,6 +73,8 @@ function write_outputs(assignment, directory)
     world = a -> assignment.run_reaction(yields, a, rng; cutoff = CUTOFF);
     game = assignment.plate_thompson_sampling(world, K, BLOCKS, WELLS; rng = rng);
     check_game(game, K, EXPERIMENTS, "plate_thompson_sampling");
+
+    # The probability that each condition is the best; the pick is the most likely one -
     best = assignment.probability_best(game.S, game.F, DRAWS_SUMMARY; rng = rng);
     check_length(best, K, "probability_best");
     write_summary(directory, screen, θ, game, best);
@@ -85,14 +85,20 @@ function write_outputs(assignment, directory)
     write_plate_sizes(directory, assignment, yields, θ);
 
     # The PBSF ban: what the main screen says about the 16 PBSF-free conditions, and a new screen -
-    pbsf_free = collect(PBSF_FREE);
+    pbsf_free = collect(PBSF_FREE); # the column numbers 1 to 16, as a vector
+
+    # Check that none of these columns uses PBSF -
     for a in pbsf_free
         if screen.sulfonyl_fluorides[a] == "PBSF"
             error("Column $a of the table uses PBSF; the PBSF-free columns are 1 to 16.");
         end
     end
+
+    # What the main screen learned: probability of being best among the PBSF-free conditions only -
     first_best = assignment.probability_best(game.S[pbsf_free], game.F[pbsf_free], DRAWS_SUMMARY;
         rng = MersenneTwister(SEED + 1));
+
+    # A new screen of 480 experiments with the 16 PBSF-free conditions -
     println("PBSF-free screen: $BLOCKS blocks of $WELLS wells, $(length(pbsf_free)) conditions.");
     yields_free = yields[:, pbsf_free]; # the table without the PBSF columns
     rng_free = MersenneTwister(SEED);
@@ -104,9 +110,9 @@ function write_outputs(assignment, directory)
     pick_free = pbsf_free[argmax(best_free)];
 
     # Print the summary -
-    n = size(yields, 1);
-    best_all = argmax(θ);
-    best_ban = pbsf_free[argmax(θ[pbsf_free])];
+    n = size(yields, 1); # the number of alcohols
+    best_all = argmax(θ); # the column of the best condition
+    best_ban = pbsf_free[argmax(θ[pbsf_free])]; # the column of the best PBSF-free condition
     println();
     @printf("Main screen pick: %s, probability of being best %.3f, %d experiments, works on %d of %d alcohols.\n",
         screen.conditions[pick], best[pick], game.S[pick] + game.F[pick], round(Int, θ[pick] * n), n);
@@ -129,6 +135,11 @@ end
 
 Throw an `ErrorException` naming the student function `name` unless `v` is a vector
 with `n` entries.
+
+### Arguments
+- `v`: the result to check.
+- `n::Int64`: the number of entries `v` must have.
+- `name::String`: the name of the student function that returned `v`, for the message.
 """
 function check_length(v, n, name)
     if !(v isa AbstractVector) || length(v) != n
@@ -142,13 +153,23 @@ end
 
 Throw an `ErrorException` naming the student function `name` unless `game` has the
 fields `actions`, `rewards`, `S`, and `F` with `T`, `T`, `K`, and `K` entries.
+
+### Arguments
+- `game`: the named tuple returned by `my_thompson_sampling` or `plate_thompson_sampling`.
+- `K::Int64`: the number of conditions.
+- `T::Int64`: the number of experiments.
+- `name::String`: the name of the student function, for the message.
 """
 function check_game(game, K, T, name)
+
+    # Check that each field is there (:actions is the name of the field actions) -
     for field in (:actions, :rewards, :S, :F)
         if !hasproperty(game, field)
             error("$name returned a result without the field $field.");
         end
     end
+
+    # Check the length of each field -
     check_length(game.actions, T, name);
     check_length(game.rewards, T, name);
     check_length(game.S, K, name);
@@ -162,10 +183,17 @@ end
 Write `conditions.csv`: each condition, its reagents, the number of alcohols it
 fluorinates with a yield of at least the cutoff, its true success fraction, and its gap
 (the best success fraction minus its own).
+
+### Arguments
+- `directory::String`: the output folder.
+- `screen::NamedTuple`: the screen from `load_screen()`.
+- `θ::Array{Float64,1}`: the true success fraction of each condition.
 """
 function write_conditions(directory, screen, θ)
-    n = size(screen.yields, 1);
-    best = maximum(θ);
+    n = size(screen.yields, 1); # the number of alcohols
+    best = maximum(θ); # the highest true success fraction
+
+    # Write one header line, then one line per condition -
     io = open(joinpath(directory, "conditions.csv"), "w");
     println(io, "condition,sulfonyl_fluoride,base,alcohols_at_or_above_cutoff,alcohols,true_success_fraction,gap");
     for a in 1:length(θ)
@@ -182,8 +210,17 @@ end
 Write `screen-summary.csv` for the main screen: for each condition, the experiments,
 successes, failures, posterior mean, probability of being best, and true success
 fraction.
+
+### Arguments
+- `directory::String`: the output folder.
+- `screen::NamedTuple`: the screen from `load_screen()`.
+- `θ::Array{Float64,1}`: the true success fraction of each condition.
+- `game::NamedTuple`: the main screen, from `plate_thompson_sampling`.
+- `best::Array{Float64,1}`: the probability that each condition is the best.
 """
 function write_summary(directory, screen, θ, game, best)
+
+    # Write one header line, then one line per condition -
     io = open(joinpath(directory, "screen-summary.csv"), "w");
     println(io, "condition,sulfonyl_fluoride,base,experiments,successes,failures,posterior_mean,probability_best,true_success_fraction");
     for a in 1:length(θ)
@@ -203,11 +240,17 @@ end
 Plot `posteriors.png`: the posterior of the six most-run conditions in the main screen,
 and of the condition with the lowest true success fraction, each with a dashed line at
 its true success fraction.
+
+### Arguments
+- `directory::String`: the output folder.
+- `screen::NamedTuple`: the screen from `load_screen()`.
+- `θ::Array{Float64,1}`: the true success fraction of each condition.
+- `game::NamedTuple`: the main screen, from `plate_thompson_sampling`.
 """
 function write_posteriors(directory, screen, θ, game)
 
     # Choose the curves: the six most-run conditions, then the worst condition -
-    runs = game.S .+ game.F;
+    runs = game.S + game.F; # the number of experiments with each condition
     order = sortperm(runs; rev = true); # conditions from most to fewest experiments
     shown = order[1:6];
     worst = argmin(θ);
@@ -221,7 +264,7 @@ function write_posteriors(directory, screen, θ, game)
     figure = plot(; xlabel = "Success probability θ", ylabel = "Posterior density",
         title = "Posteriors after $EXPERIMENTS experiments ($BLOCKS blocks of $WELLS)",
         legend = :topleft, size = (900, 520), framestyle = :box, titlefontsize = 11,
-        left_margin = 6Plots.mm, bottom_margin = 4Plots.mm);
+        left_margin = 6 * Plots.mm, bottom_margin = 4 * Plots.mm);
     for k in 1:length(shown)
         a = shown[k];
         posterior = Beta(1 + game.S[a], 1 + game.F[a]);
@@ -244,9 +287,16 @@ Run 100 screens of 480 experiments for each block size in `BLOCK_SIZES`, and wri
 `plate-sizes.csv` and `gap-loss.png`. One well per block uses `my_thompson_sampling`;
 the other sizes use `plate_thompson_sampling`. The last table row is the equal split:
 every condition runs on the same number of alcohols, with no learning.
+
+### Arguments
+- `directory::String`: the output folder.
+- `assignment`: the loaded `FluorinationScreen` module, with the student's functions.
+- `yields::Array{Float64,2}`: the yield table.
+- `θ::Array{Float64,1}`: the true success fraction of each condition.
 """
 function write_plate_sizes(directory, assignment, yields, θ)
 
+    # Set up: the best and second-best success fractions, and the table's header -
     K = length(θ);
     best_value = maximum(θ);
     sorted = sort(θ; rev = true);
@@ -256,19 +306,20 @@ function write_plate_sizes(directory, assignment, yields, θ)
     io = open(joinpath(directory, "plate-sizes.csv"), "w");
     println(io, "strategy,wells_per_block,blocks,days,mean_successes,mean_gap_loss,pick_is_best,pick_in_top_two");
 
+    # Run 100 screens for each block size -
     for k in 1:length(BLOCK_SIZES)
-        w = BLOCK_SIZES[k];
-        blocks = div(EXPERIMENTS, w);
+        w = BLOCK_SIZES[k]; # wells per block
+        blocks = div(EXPERIMENTS, w); # blocks per screen: 480 / w
         total_successes = 0;
         picks_best = 0;
         picks_top_two = 0;
         for s in 1:screens
             seed = SCREEN_SEEDS[s];
-            if s % 25 == 0
+            if s % 25 == 0 # print progress every 25 screens
                 println("Block size $w: screen $s of $screens");
             end
 
-            # Play one screen with this block size -
+            # Play one screen with this block size; one well per block is my_thompson_sampling -
             rng = MersenneTwister(seed);
             world = a -> assignment.run_reaction(yields, a, rng; cutoff = CUTOFF);
             if w == 1
@@ -295,14 +346,18 @@ function write_plate_sizes(directory, assignment, yields, θ)
                 picks_top_two = picks_top_two + 1;
             end
         end
+        # Write the averages over the 100 screens for this block size -
         @printf(io, "thompson,%d,%d,%d,%.1f,%.1f,%.2f,%.2f\n", w, blocks, blocks * DAYS_PER_BLOCK,
             total_successes / screens, mean_curves[EXPERIMENTS, k], picks_best / screens, picks_top_two / screens);
     end
 
     # The equal split: the same number of runs on every condition, no learning -
-    runs_each = div(EXPERIMENTS, K);
+    runs_each = div(EXPERIMENTS, K); # 480 / 20 = 24 runs per condition
     equal_successes = runs_each * sum(θ);
-    equal_gap_loss = runs_each * sum(best_value .- θ);
+    equal_gap_loss = 0.0;
+    for a in 1:K
+        equal_gap_loss = equal_gap_loss + runs_each * (best_value - θ[a]); # the gap of condition a, 24 times
+    end
     @printf(io, "equal_split,,,,%.1f,%.1f,,\n", equal_successes, equal_gap_loss);
     close(io);
 
@@ -311,7 +366,7 @@ function write_plate_sizes(directory, assignment, yields, θ)
     figure = plot(; xlabel = "Experiments", ylabel = "Mean gap loss (extra failed runs)",
         title = "Gap loss over $EXPERIMENTS experiments, mean of $screens screens",
         legend = :topleft, size = (900, 520), framestyle = :box, titlefontsize = 11,
-        left_margin = 6Plots.mm, bottom_margin = 4Plots.mm);
+        left_margin = 6 * Plots.mm, bottom_margin = 4 * Plots.mm);
     for k in 1:length(BLOCK_SIZES)
         w = BLOCK_SIZES[k];
         days = div(EXPERIMENTS, w) * DAYS_PER_BLOCK;
@@ -321,6 +376,7 @@ function write_plate_sizes(directory, assignment, yields, θ)
         end
         plot!(figure, 1:EXPERIMENTS, mean_curves[:, k]; lw = 2, color = k, label = label);
     end
+    # The equal split adds the same gap with every experiment, so its curve is a straight line -
     plot!(figure, [0, EXPERIMENTS], [0.0, equal_gap_loss]; lw = 2, ls = :dash, color = :black,
         label = "equal split");
     savefig(figure, joinpath(directory, "gap-loss.png"));
@@ -333,16 +389,30 @@ end
 Write `pbsf-ban.csv`: for each PBSF-free condition, what the main screen learned about
 it (experiments, posterior mean, and probability of being best among the PBSF-free
 conditions), the same for the new PBSF-free screen, and its true success fraction.
+
+### Arguments
+- `directory::String`: the output folder.
+- `screen::NamedTuple`: the screen from `load_screen()`.
+- `θ::Array{Float64,1}`: the true success fraction of each of the 20 conditions.
+- `pbsf_free::Array{Int64,1}`: the columns of the PBSF-free conditions in the full table.
+- `game::NamedTuple`: the main screen, with all 20 conditions.
+- `first_best::Array{Float64,1}`: from the main screen, the probability that each
+  PBSF-free condition is the best of the PBSF-free conditions.
+- `game_free::NamedTuple`: the new screen, with only the PBSF-free conditions.
+- `best_free::Array{Float64,1}`: from the new screen, the probability that each
+  PBSF-free condition is the best.
 """
 function write_ban(directory, screen, θ, pbsf_free, game, first_best, game_free, best_free)
+
+    # Write one header line, then one line per PBSF-free condition -
     io = open(joinpath(directory, "pbsf-ban.csv"), "w");
     println(io, "condition,first_screen_experiments,first_screen_posterior_mean,first_screen_probability_best," *
         "new_screen_experiments,new_screen_posterior_mean,new_screen_probability_best,true_success_fraction");
     for k in 1:length(pbsf_free)
         a = pbsf_free[k]; # the column of this condition in the full table
-        S1 = game.S[a];
+        S1 = game.S[a]; # successes in the main (first) screen
         F1 = game.F[a];
-        S2 = game_free.S[k];
+        S2 = game_free.S[k]; # successes in the new screen; its column k is condition a
         F2 = game_free.F[k];
         @printf(io, "%s,%d,%.4f,%.4f,%d,%.4f,%.4f,%.4f\n", screen.conditions[a],
             S1 + F1, (1 + S1) / (2 + S1 + F1), first_best[k],

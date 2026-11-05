@@ -10,6 +10,7 @@
 using Test;   # record one scored assertion per labeled case
 using Random; # MersenneTwister for repeatable games
 
+# Load the code into this script's module; the checker runs each test script in its own module -
 Base.include(@__MODULE__, joinpath(@__DIR__, "Include.jl"));
 Base.include(@__MODULE__, joinpath(@__DIR__, "test_support.jl"));
 
@@ -42,7 +43,10 @@ checks = [
 
     "real data" => () -> begin
         θ = success_fractions(screen.yields);
-        counts = round.(Int, 37 .* θ); # alcohols at or above 50% for each condition
+        counts = zeros(Int64, length(θ));
+        for a in 1:length(θ)
+            counts[a] = round(Int64, 37 * θ[a]); # alcohols at or above 50% for condition a
+        end
 
         counts == [4, 11, 11, 12, 8, 12, 12, 12, 8, 14, 15, 18, 9, 14, 17, 14, 16, 20, 23, 22]
     end,
@@ -50,7 +54,7 @@ checks = [
     "fractions between 0 and 1" => () -> begin
         θ = success_fractions(screen.yields; cutoff = 30.0);
 
-        length(θ) == 20 && all(0.0 .<= θ .<= 1.0)
+        length(θ) == 20 && all_between(θ, 0.0, 1.0)
     end,
 
     "table unchanged" => () -> begin
@@ -86,21 +90,27 @@ checks = [
         rng = MersenneTwister(3);
         result = my_thompson_sampling(toy_world(toy, rng), 3, 200; rng = rng);
 
-        result.S .+ result.F == [count(result.actions .== a) for a in 1:3]
+        result.S + result.F == count_runs(result.actions, 3)
     end,
 
     "successes match the rewards" => () -> begin
         rng = MersenneTwister(4);
         result = my_thompson_sampling(toy_world(toy, rng), 3, 200; rng = rng);
 
-        result.S == [sum(result.rewards[result.actions .== a]) for a in 1:3]
+        result.S == count_successes(result.actions, result.rewards, 3)
     end,
 
     "rewards are 0 or 1" => () -> begin
         rng = MersenneTwister(5);
         result = my_thompson_sampling(toy_world(toy, rng), 3, 200; rng = rng);
+        zero_or_one = true;
+        for t in 1:length(result.rewards)
+            if result.rewards[t] != 0 && result.rewards[t] != 1
+                zero_or_one = false;
+            end
+        end
 
-        all((result.rewards .== 0) .| (result.rewards .== 1))
+        zero_or_one
     end,
 
     "same seed gives the same game" => () -> begin
@@ -129,9 +139,10 @@ checks = [
     "learns the best toy condition" => () -> begin
         rng = MersenneTwister(1234);
         result = my_thompson_sampling(toy_world(toy, rng), 3, 2000; rng = rng);
+        runs = count_runs(result.actions, 3);
         posterior_mean = (1 + result.S[3]) / (2 + result.S[3] + result.F[3]);
 
-        count(result.actions .== 3) > 1000 && abs(posterior_mean - 0.9) < 0.05
+        runs[3] > 1000 && abs(posterior_mean - 0.9) < 0.05
     end,
 
     "one condition only" => () -> begin
@@ -146,31 +157,32 @@ checks = [
         α = [1.0, 1000.0, 1.0]; # a strong belief that condition 2 almost always works
         β = [1000.0, 1.0, 1000.0];
         result = my_thompson_sampling(toy_world(toy, rng), 3, 50; rng = rng, α = α, β = β);
+        runs = count_runs(result.actions, 3);
 
-        all(result.actions .== 2)
+        runs[2] == length(result.actions) # every round chose condition 2
     end,
 
     "world called once per round" => () -> begin
-        counter = Ref(0);
+        counter = [0]; # counting_world adds 1 to counter[1] at every call
         my_thompson_sampling(counting_world(counter, 1), 3, 40; rng = MersenneTwister(8));
 
-        counter[] == 40
+        counter[1] == 40
     end,
 
     "K or T below 1 rejected" => () ->
-        throws_type(() -> my_thompson_sampling(counting_world(Ref(0), 1), 0, 10; rng = MersenneTwister(1)), ArgumentError) &&
-        throws_type(() -> my_thompson_sampling(counting_world(Ref(0), 1), 3, 0; rng = MersenneTwister(1)), ArgumentError),
+        throws_type(() -> my_thompson_sampling(counting_world([0], 1), 0, 10; rng = MersenneTwister(1)), ArgumentError) &&
+        throws_type(() -> my_thompson_sampling(counting_world([0], 1), 3, 0; rng = MersenneTwister(1)), ArgumentError),
 
     "wrong-length prior rejected" => () ->
-        throws_type(() -> my_thompson_sampling(counting_world(Ref(0), 1), 3, 10; rng = MersenneTwister(1),
+        throws_type(() -> my_thompson_sampling(counting_world([0], 1), 3, 10; rng = MersenneTwister(1),
             α = ones(2)), ArgumentError),
 
     "nonpositive prior rejected" => () ->
-        throws_type(() -> my_thompson_sampling(counting_world(Ref(0), 1), 3, 10; rng = MersenneTwister(1),
+        throws_type(() -> my_thompson_sampling(counting_world([0], 1), 3, 10; rng = MersenneTwister(1),
             β = [1.0, 0.0, 1.0]), ArgumentError),
 
     "reward other than 0 or 1 rejected" => () ->
-        throws_type(() -> my_thompson_sampling(counting_world(Ref(0), 2), 3, 10; rng = MersenneTwister(1)), ArgumentError),
+        throws_type(() -> my_thompson_sampling(counting_world([0], 2), 3, 10; rng = MersenneTwister(1)), ArgumentError),
 ];
 
 
@@ -179,7 +191,7 @@ checks = [
 # ----------------------------------------------------------------------------
 
 @testset "PS5 Part 1 (24 tests)" begin
-    for (label, check) in checks
+    for (label, check) in checks # each entry is label => check; check() is true when the case passes
         @testset "$label" begin
             @test check();
         end

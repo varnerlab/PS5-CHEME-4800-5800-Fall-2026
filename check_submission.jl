@@ -55,13 +55,18 @@ function discussion_issues(path; questions=1:3)
     # Read the file; remove Windows line endings and a byte-order mark -
     content = "";
     try
-        content = replace(replace(read(path, String), "\r\n" => "\n"), '﻿' => "");
+        content = read(path, String);
+        content = replace(content, "\r\n" => "\n"); # turn Windows line endings into plain ones
+        content = replace(content, '\ufeff' => "");  # remove the invisible byte-order mark some editors add
     catch
         return ["responses.md could not be read"];
     end
-    answers = Dict{Int,String}();
+    answers = Dict{Int,String}(); # question number => answer text
     issues = String[];
+
     # Separate each numbered prompt from the answer paragraphs that follow it -
+    # The pattern finds a line that starts with "1.", "2.", or "3." and a bold "**"
+    # prompt, and takes everything up to the next such line or the end of the file.
     for section in eachmatch(r"(?ms)^[ \t]{0,2}([1-3])\.[ \t]+\*\*.*?(?=^[ \t]{0,2}[1-3]\.[ \t]+\*\*|\z)", content)
         number = parse(Int, section.captures[1]);
         if !(number in questions)
@@ -70,10 +75,14 @@ function discussion_issues(path; questions=1:3)
         if haskey(answers, number)
             push!(issues, "Question $number appears more than once");
         end
+        # The prompt is the first paragraph; the answer is everything after the first blank line -
         paragraphs = split(section.match, r"\n[ \t]*\n"; limit=2);
         answer = length(paragraphs) == 2 ? paragraphs[2] : "";
-        answers[number] = strip(replace(answer, r"(?s)<!--.*?-->" => ""));
+        answer = replace(answer, r"(?s)<!--.*?-->" => ""); # drop HTML comments, <!-- ... -->
+        answers[number] = strip(answer);
     end
+
+    # Each question needs an answer with at least one letter or digit, and no placeholder -
     for number in questions
         answer = get(answers, number, "");
         if !occursin(r"[\p{L}\p{N}]", answer)
@@ -90,6 +99,7 @@ statuses = Dict{String,String}();
 suites = Dict{String,Module}();
 required_suites = ("testme_part_1.jl", "testme_part_2.jl");
 # Isolate each suite so loading the same student module twice does not replace it -
+# (Module(gensym(...)) makes a new, empty module with a unique name for each test script)
 for filename in required_suites
     println("\nRunning ", filename);
     try
@@ -111,6 +121,8 @@ end
 issues = discussion_issues(RESPONSE_PATH);
 
 # Both required test scripts must pass before the reports are made -
+# (global: inside a loop or try block at the top of a script, Julia needs this word to
+# change a variable defined outside the block)
 required_passed = true;
 for name in required_suites
     if statuses[name] != "all tests passed"
@@ -143,6 +155,8 @@ end
 ready = required_passed && report_status == "plots and data tables generated" && isempty(issues);
 
 # Record the test status and fingerprint every submitted source file -
+# walkdir visits src/ and every folder inside it; for each folder it gives the folder,
+# its subfolders (not needed here, so named _), and its files.
 files = [joinpath(@__DIR__, "Include.jl"), RESPONSE_PATH];
 for (directory, _, filenames) in walkdir(joinpath(@__DIR__, "src"))
     for name in filenames
@@ -155,14 +169,21 @@ for (directory, _, filenames) in walkdir(joinpath(@__DIR__, "src"))
     end
 end
 io = open(joinpath(CHECK_ROOT, "MANIFEST.txt"), "w");
-println(io, SOLUTION_MODE ? "PS5 instructor reference solution manifest" :
-    "PS5 CHEME 4800/5800 Fall 2026 submission manifest");
+if SOLUTION_MODE
+    println(io, "PS5 instructor reference solution manifest");
+else
+    println(io, "PS5 CHEME 4800/5800 Fall 2026 submission manifest");
+end
 println(io, "Generated: ", Dates.now());
 for name in sort(collect(keys(statuses)))
     println(io, name, ": ", statuses[name]);
 end
 println(io, "Outputs: ", report_status);
-println(io, "Discussion: ", isempty(issues) ? "no unanswered prompts detected; instructor review required" : join(issues, "; "));
+if isempty(issues)
+    println(io, "Discussion: no unanswered prompts detected; instructor review required");
+else
+    println(io, "Discussion: ", join(issues, "; "));
+end
 println(io, "Required work: ", ready ? "checks passed; instructor review required" : "WORK NEEDS ATTENTION");
 for path in sort(files)
     relative = replace(relpath(path, @__DIR__), '\\' => '/');

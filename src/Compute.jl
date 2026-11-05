@@ -54,12 +54,15 @@ function success_fractions(yields::Array{Float64,2}; cutoff::Float64 = 50.0)
     # TODO 1: Compute and return the success fraction of each condition.
 
     # Check the table -
-    # Throw an ArgumentError if the table has no rows or no columns.
+    # The number of alcohols is size(yields, 1), the rows, and the number of
+    # conditions is size(yields, 2), the columns. Throw an ArgumentError if either is 0.
 
     # Count the successes in each column -
-    # For each condition a, count the alcohols i with yields[i, a] >= cutoff.
+    # Make θ = zeros(number of conditions). For each condition a, count the alcohols i
+    # with yields[i, a] >= cutoff, and set θ[a] to that count divided by the number
+    # of alcohols.
 
-    # Divide each count by the number of alcohols, size(yields, 1), and return -
+    # Return θ -
 
     error("Complete success_fractions in src/Compute.jl");
 end
@@ -146,13 +149,14 @@ function my_thompson_sampling(world::Function, K::Int64, T::Int64; rng::Abstract
     # Initialize -
     # Start the counts S and F at zero, one entry per arm, and make vectors to hold
     # the action and the reward of each round. zeros(Int64, n) makes n whole-number zeros.
+    # Also make p = zeros(K) to hold one posterior sample per arm.
 
     # Play the rounds: for t in 1:T -
-    # Step 1: draw one sample from the posterior of each arm, in arm order.
-    # Step 2: choose the arm with the largest sample.
-    # Step 3: call world once; throw an ArgumentError if the reward is not 0 or 1;
-    #         store the action and the reward of round t.
-    # Step 4: add the reward to S of that arm, and 1 - reward to F of that arm.
+    # Step 1: for a in 1:K, set p[a] = rand(rng, Beta(α[a] + S[a], β[a] + F[a])).
+    # Step 2: choose the arm with the largest sample, argmax(p).
+    # Step 3: call world once with that arm to get the reward r; throw an
+    #         ArgumentError if r is not 0 or 1; store the arm and r for round t.
+    # Step 4: add r to S of that arm, and 1 - r to F of that arm.
 
     # Return the history and the counts -
     # return (actions = actions, rewards = rewards, S = S, F = F);
@@ -231,10 +235,13 @@ function plate_thompson_sampling(world::Function, K::Int64, plates::Int64, wells
 
     # Initialize -
     # Start S and F at zero, and make vectors for the plates * wells actions and rewards.
+    # Also make p = zeros(K) for the samples, and block_arms = zeros(Int64, wells) for
+    # the arm of each well in the current block.
 
     # Play the blocks: for plate in 1:plates -
-    # Step 1: choose the arm of every well, well by well. Each well draws its own
-    #         samples, in arm order, from the counts at the start of the block.
+    # Step 1: for each well w in 1:wells, draw one sample per arm into p, as in Step 1
+    #         of my_thompson_sampling, and set block_arms[w] = argmax(p). Do not change
+    #         S or F here: every well uses the counts from the start of the block.
     # Step 2: only after every well has its arm, run the wells in well order: one
     #         world call per well. Throw an ArgumentError if a reward is not 0 or 1.
     #         Store each action and reward.
@@ -282,6 +289,7 @@ wrong length or an entry that is not positive.
 
 ### Example
 ```julia
+# result is a game from my_thompson_sampling or plate_thompson_sampling (see their examples)
 p = probability_best(result.S, result.F, 10_000; rng = MersenneTwister(5800));
 argmax(p) # the arm most likely to be the best: the group's pick
 ```
@@ -297,10 +305,12 @@ function probability_best(S::Array{Int64,1}, F::Array{Int64,1}, N::Int64; rng::A
     # wrong length or an entry that is not positive.
 
     # Count the wins: for each of the N rounds -
-    # Draw one sample from each arm's posterior, in arm order, and add one win to
-    # the arm with the largest sample.
+    # Make wins = zeros(Int64, K) before the loop, where K = length(S). In each round,
+    # draw one sample from each arm's posterior, in arm order, as in
+    # my_thompson_sampling, and add one win to the arm with the largest sample.
 
     # Divide the wins by N and return -
+    # Make a vector of K zeros, and set entry a to wins[a] / N.
 
     error("Complete probability_best in src/Compute.jl");
 end

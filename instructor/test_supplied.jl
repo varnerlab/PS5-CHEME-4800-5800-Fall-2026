@@ -13,8 +13,10 @@ using Distributions; # Bernoulli, for the lab's world
 const LAB_THOMPSON = joinpath(@__DIR__, "..", "..", "CHEME-5800-CourseRepository-Fall-2026", "weeks", "week-10",
     "L10d", "src", "Compute-solution.jl");
 has_lab = isfile(LAB_THOMPSON);
-has_lab || @warn "Course repository not found next to PS5; skipping the comparisons with the L10d lab.";
-module LabThompson end
+if !has_lab
+    @warn "Course repository not found next to PS5; skipping the comparisons with the L10d lab.";
+end
+module LabThompson end # an empty module to hold the lab's code, so its names stay separate
 if has_lab
     Base.include(LabThompson, LAB_THOMPSON);
 end
@@ -82,7 +84,7 @@ end
     # Loader: values match the CSV (s1 with PyFluor and DBU gave 48%) -
     @test screen.yields[1, 5] == 48.0 && screen.conditions[5] == "PyFluor/DBU";
     @test screen.yields[1, 1] == 42.0 && screen.yields[1, 2] == 76.0;
-    @test all(0.0 .<= screen.yields .<= 106.0) && maximum(screen.yields) == 106.0;
+    @test minimum(screen.yields) >= 0.0 && maximum(screen.yields) == 106.0;
 
     # Loader: successes per condition match the published table -
     counts = zeros(Int64, 20);

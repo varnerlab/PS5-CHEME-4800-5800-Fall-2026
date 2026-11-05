@@ -10,6 +10,7 @@ using Random; # MersenneTwister for repeatable games
 using ..FluorinationScreen; # implementation loaded by the current test suite
 
 export throws_type, toy_table, toy_world, counting_world, fixed_world;
+export count_runs, count_successes, all_between;
 export TOY_GAME_ACTIONS, REAL_GAME_S, REAL_GAME_F;
 export TOY_PLATE_ACTIONS, REAL_PLATE_S, REAL_PLATE_F, TOY_BEST;
 
@@ -74,22 +75,23 @@ function toy_world(yields::Array{Float64,2}, rng::AbstractRNG)
 end
 
 """
-    record_call(counter::Base.RefValue{Int64}, reward::Int64) -> Int64
+    record_call(counter::Array{Int64,1}, reward::Int64) -> Int64
 
-Add one to `counter[]` and return `reward`. Used by `counting_world`.
+Add one to `counter[1]` and return `reward`. Used by `counting_world`.
 """
-function record_call(counter::Base.RefValue{Int64}, reward::Int64)
-    counter[] = counter[] + 1;
+function record_call(counter::Array{Int64,1}, reward::Int64)
+    counter[1] = counter[1] + 1; # one more call to the world
     return reward;
 end
 
 """
-    counting_world(counter::Base.RefValue{Int64}, reward::Int64) -> Function
+    counting_world(counter::Array{Int64,1}, reward::Int64) -> Function
 
 Return a world that returns `reward` for every condition and counts its calls in
-`counter[]`. Make the counter with `counter = Ref(0)`.
+`counter[1]`. Make the counter with `counter = [0]`, a vector with one entry, so
+the count can change inside the world and still be read after the game.
 """
-function counting_world(counter::Base.RefValue{Int64}, reward::Int64)
+function counting_world(counter::Array{Int64,1}, reward::Int64)
     return a -> record_call(counter, reward);
 end
 
@@ -100,6 +102,72 @@ Return a world with no randomness: condition `a` always returns `rewards[a]`.
 """
 function fixed_world(rewards::Array{Int64,1})
     return a -> rewards[a];
+end
+
+"""
+    count_runs(actions, K::Int64) -> Array{Int64,1}
+
+Count the experiments run with each arm. Entry `a` of the result is the number of
+entries of `actions` equal to `a`, for `a = 1, 2, ..., K`.
+"""
+function count_runs(actions, K::Int64)
+
+    # Compare every action with every arm, and count the matches -
+    runs = zeros(Int64, K);
+    for t in 1:length(actions)
+        for a in 1:K
+            if actions[t] == a
+                runs[a] = runs[a] + 1;
+            end
+        end
+    end
+
+    return runs;
+end
+
+"""
+    count_successes(actions, rewards, K::Int64) -> Array{Int64,1}
+
+Add up the rewards of each arm. Entry `a` of the result is the sum of `rewards[t]`
+over the experiments `t` with `actions[t] == a`. Throws an `ErrorException` if
+`actions` and `rewards` have different lengths.
+"""
+function count_successes(actions, rewards, K::Int64)
+
+    # Check that there is one reward per action -
+    if length(actions) != length(rewards)
+        error("actions and rewards have different lengths");
+    end
+
+    # Add each reward to the arm that earned it -
+    successes = zeros(Int64, K);
+    for t in 1:length(actions)
+        for a in 1:K
+            if actions[t] == a
+                successes[a] = successes[a] + rewards[t];
+            end
+        end
+    end
+
+    return successes;
+end
+
+"""
+    all_between(values, low, high) -> Bool
+
+Return `true` if every entry of `values` is at least `low` and at most `high`, and
+`false` otherwise.
+"""
+function all_between(values, low, high)
+
+    # Stop at the first entry outside the range; NaN is outside every range -
+    for k in 1:length(values)
+        if !(values[k] >= low && values[k] <= high)
+            return false;
+        end
+    end
+
+    return true;
 end
 
 """

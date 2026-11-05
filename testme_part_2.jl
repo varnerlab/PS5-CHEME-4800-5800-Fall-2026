@@ -11,6 +11,7 @@
 using Test;   # record one scored assertion per labeled case
 using Random; # MersenneTwister for repeatable games
 
+# Load the code into this script's module; the checker runs each test script in its own module -
 Base.include(@__MODULE__, joinpath(@__DIR__, "Include.jl"));
 Base.include(@__MODULE__, joinpath(@__DIR__, "test_support.jl"));
 
@@ -47,8 +48,8 @@ checks = [
         rng = MersenneTwister(3);
         result = plate_thompson_sampling(toy_world(toy, rng), 3, 10, 7; rng = rng);
 
-        result.S .+ result.F == [count(result.actions .== a) for a in 1:3] &&
-            result.S == [sum(result.rewards[result.actions .== a]) for a in 1:3]
+        result.S + result.F == count_runs(result.actions, 3) &&
+            result.S == count_successes(result.actions, result.rewards, 3)
     end,
 
     "one well per block is ordinary Thompson sampling" => () -> begin
@@ -76,18 +77,19 @@ checks = [
     "one block draws every well from the prior" => () -> begin
         # Every experiment succeeds. If the counts changed inside the block, the first
         # condition to succeed would take most of the wells.
-        result = plate_thompson_sampling(counting_world(Ref(0), 1), 3, 1, 300; rng = MersenneTwister(9));
-        wells_per_condition = [count(result.actions .== a) for a in 1:3];
+        result = plate_thompson_sampling(counting_world([0], 1), 3, 1, 300; rng = MersenneTwister(9));
+        wells_per_condition = count_runs(result.actions, 3);
 
-        all(70 .<= wells_per_condition .<= 130)
+        all_between(wells_per_condition, 70, 130)
     end,
 
     "counts update after each block" => () -> begin
         # Condition 1 always succeeds; conditions 2 and 3 always fail -
         result = plate_thompson_sampling(fixed_world([1, 0, 0]), 3, 20, 10; rng = MersenneTwister(10));
         last_block = result.actions[191:200];
+        runs = count_runs(last_block, 3);
 
-        count(last_block .== 1) >= 8
+        runs[1] >= 8
     end,
 
     "same seed gives the same game" => () -> begin
@@ -100,10 +102,10 @@ checks = [
     end,
 
     "world called once per well" => () -> begin
-        counter = Ref(0);
+        counter = [0]; # counting_world adds 1 to counter[1] at every call
         plate_thompson_sampling(counting_world(counter, 0), 3, 6, 5; rng = MersenneTwister(11));
 
-        counter[] == 30
+        counter[1] == 30
     end,
 
     "prior keywords are used" => () -> begin
@@ -111,23 +113,24 @@ checks = [
         α = [1.0, 1000.0, 1.0]; # a strong belief that condition 2 almost always works
         β = [1000.0, 1.0, 1000.0];
         result = plate_thompson_sampling(toy_world(toy, rng), 3, 5, 10; rng = rng, α = α, β = β);
+        runs = count_runs(result.actions, 3);
 
-        all(result.actions .== 2)
+        runs[2] == length(result.actions) # every experiment used condition 2
     end,
 
     "K, plates, or wells below 1 rejected" => () ->
-        throws_type(() -> plate_thompson_sampling(counting_world(Ref(0), 1), 0, 2, 2; rng = MersenneTwister(1)), ArgumentError) &&
-        throws_type(() -> plate_thompson_sampling(counting_world(Ref(0), 1), 3, 0, 2; rng = MersenneTwister(1)), ArgumentError) &&
-        throws_type(() -> plate_thompson_sampling(counting_world(Ref(0), 1), 3, 2, 0; rng = MersenneTwister(1)), ArgumentError),
+        throws_type(() -> plate_thompson_sampling(counting_world([0], 1), 0, 2, 2; rng = MersenneTwister(1)), ArgumentError) &&
+        throws_type(() -> plate_thompson_sampling(counting_world([0], 1), 3, 0, 2; rng = MersenneTwister(1)), ArgumentError) &&
+        throws_type(() -> plate_thompson_sampling(counting_world([0], 1), 3, 2, 0; rng = MersenneTwister(1)), ArgumentError),
 
     "bad prior rejected" => () ->
-        throws_type(() -> plate_thompson_sampling(counting_world(Ref(0), 1), 3, 2, 2; rng = MersenneTwister(1),
+        throws_type(() -> plate_thompson_sampling(counting_world([0], 1), 3, 2, 2; rng = MersenneTwister(1),
             α = ones(4)), ArgumentError) &&
-        throws_type(() -> plate_thompson_sampling(counting_world(Ref(0), 1), 3, 2, 2; rng = MersenneTwister(1),
+        throws_type(() -> plate_thompson_sampling(counting_world([0], 1), 3, 2, 2; rng = MersenneTwister(1),
             β = [1.0, -1.0, 1.0]), ArgumentError),
 
     "reward other than 0 or 1 rejected" => () ->
-        throws_type(() -> plate_thompson_sampling(counting_world(Ref(0), -1), 3, 2, 2; rng = MersenneTwister(1)), ArgumentError),
+        throws_type(() -> plate_thompson_sampling(counting_world([0], -1), 3, 2, 2; rng = MersenneTwister(1)), ArgumentError),
 
     # The probability that each condition is the best -
     "probabilities type and length" => () -> begin
@@ -145,9 +148,15 @@ checks = [
     "multiples of 1/N" => () -> begin
         N = 777;
         p = probability_best([3, 1, 0], [1, 1, 2], N; rng = MersenneTwister(15));
-        wins = p .* N; # the number of rounds each condition won
+        wins = p * N; # the number of rounds each condition won
+        whole_numbers = true;
+        for a in 1:length(wins)
+            if !(abs(wins[a] - round(wins[a])) < 1e-9)
+                whole_numbers = false;
+            end
+        end
 
-        all(abs.(wins .- round.(wins)) .< 1e-9)
+        whole_numbers
     end,
 
     "exact result" => () ->
@@ -158,8 +167,14 @@ checks = [
 
     "equal counts give equal shares" => () -> begin
         p = probability_best([5, 5, 5, 5], [5, 5, 5, 5], 20_000; rng = MersenneTwister(17));
+        equal_shares = true;
+        for a in 1:length(p)
+            if !(abs(p[a] - 0.25) < 0.02)
+                equal_shares = false;
+            end
+        end
 
-        all(abs.(p .- 0.25) .< 0.02)
+        equal_shares
     end,
 
     "same seed gives the same result" => () ->
@@ -190,7 +205,7 @@ checks = [
 # ----------------------------------------------------------------------------
 
 @testset "PS5 Part 2 (24 tests)" begin
-    for (label, check) in checks
+    for (label, check) in checks # each entry is label => check; check() is true when the case passes
         @testset "$label" begin
             @test check();
         end

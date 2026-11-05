@@ -37,7 +37,7 @@ catch caught
     if caught isa ErrorException && startswith(caught.msg, "Complete ")
         println(stderr, "Cannot make the reports yet: ", caught.msg, ".");
         println(stderr, "Finish Parts 1 and 2 and pass testme_part_1.jl and testme_part_2.jl first.");
-        if !isinteractive() # stop the script, but keep an open REPL open
+        if !isinteractive() # stop a script run from the terminal; leave a REPL session running
             exit(1);
         end
     else

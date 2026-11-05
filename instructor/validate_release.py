@@ -30,7 +30,7 @@ def require(condition, message):
 
 
 def git(*arguments):
-    """Read the committed release tree."""
+    """Run a git command in the repository and return its output, without trailing whitespace."""
     return subprocess.check_output(["git", *arguments], cwd=ROOT, text=True).strip()
 
 
@@ -73,6 +73,7 @@ def check_contents(student, names):
 
 
 def main():
+    """Check the tag (if given), build the source archive of the commit, and test it."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--ref", default="HEAD", help="Committed tree to check")
     parser.add_argument("--tag", help="Release tag, which must identify the same commit")
