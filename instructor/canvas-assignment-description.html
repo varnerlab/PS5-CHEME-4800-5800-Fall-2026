@@ -1,0 +1,165 @@
+<!--
+INSTRUCTOR-FACING CANVAS COPY
+
+Publish the tagged GitHub release before posting this description.
+Keep the inline styles: they carry the code colors and gray backgrounds into Canvas.
+
+1. Open this file on GitHub and select Download raw file.
+2. Open the downloaded .html file in a web browser; it will render as a page.
+3. Select the rendered page (Command+A on macOS or Ctrl+A on Windows).
+4. Copy it, then paste it into the ordinary Canvas assignment description box.
+5. Preview the Canvas assignment and verify the three links before publishing.
+-->
+
+<h2>Problem Set 5: One fluorination condition for many alcohols</h2>
+
+<p>
+  <strong>Release:</strong> Saturday, November 7, 2026<br>
+  <strong>Initial submission deadline:</strong>
+  Saturday, November 21, 2026, at 11:59 PM ET<br>
+  <strong>Maximum score:</strong> 4 points
+</p>
+
+<p>
+  A medicinal chemistry group turns a stream of alcohols into alkyl fluorides
+  and wants the one deoxyfluorination condition (a sulfonyl fluoride and a base)
+  that works on the most alcohols. Write Thompson sampling for the binary
+  Bernoulli bandit from Week 10, run it on a published screen of 20 conditions
+  and 37 alcohols in 24-well reaction blocks, choose a condition, and find what a
+  ban on one reagent costs.
+</p>
+
+<h3>Download and instructions</h3>
+
+<ul>
+  <li>
+    <a href="https://github.com/varnerlab/PS5-CHEME-4800-5800-Fall-2026/blob/ps5-cheme-4800-5800-2026.1/README.md">
+      Read the complete PS5 instructions
+    </a>
+  </li>
+  <li>
+    <a href="https://github.com/varnerlab/PS5-CHEME-4800-5800-Fall-2026/releases/tag/ps5-cheme-4800-5800-2026.1">
+      Download the PS5 release
+    </a>
+  </li>
+  <li>
+    <a href="https://github.com/varnerlab/PS5-CHEME-4800-5800-Fall-2026/blob/ps5-cheme-4800-5800-2026.1/RUBRIC.md">
+      Read the grading rubric
+    </a>
+  </li>
+</ul>
+
+<p>
+  On the release page, scroll to <strong>Assets</strong> and select
+  <strong>Source code (zip)</strong>. Extract the archive completely before beginning.
+  This problem set is supported with Julia 1.12.7 and uses the Distributions and
+  Plots packages, which the first command below installs.
+</p>
+
+<h3>What to do</h3>
+
+<ul>
+  <li>
+    Complete the four functions in <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">src/Compute.jl</code>: Part 1
+    (<code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">success_fractions</code> and <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">my_thompson_sampling</code>) and Part 2
+    (<code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">plate_thompson_sampling</code> and <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">probability_best</code>).
+  </li>
+  <li>
+    Answer the three questions in <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">responses.md</code>, using the reports the
+    checker writes to the <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">outputs</code> folder.
+  </li>
+</ul>
+
+<p>
+  The starter code is intentionally incomplete, so the tests will fail
+  initially. Do not modify the supplied tests, data, loader, simulator, or
+  submission checker to make an incomplete solution appear to pass.
+</p>
+
+<h3>Check your work</h3>
+
+<p>
+  In VS Code, open the extracted assignment folder containing
+  <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">Project.toml</code>, <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">README.md</code>, and <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">check_submission.jl</code>.
+  Open a terminal in that folder and run:
+</p>
+
+<pre style="display: block; padding: 10px; margin: 0 0 10px; color: #333333; background-color: #f5f5f5; border: 1px solid #cccccc; border-radius: 4px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 13px; line-height: 1.5; white-space: pre-wrap;"><code style="color: #333333; background-color: #f5f5f5; padding: 0; font-family: inherit; font-size: inherit;">julia --startup-file=no --project=. -e 'using Pkg; Pkg.instantiate()'
+julia --startup-file=no --project=. check_submission.jl</code></pre>
+
+<p>
+  The first command installs the packages; run it once. The second runs the submission checker. It runs
+  <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">testme_part_1.jl</code> and <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">testme_part_2.jl</code>, with 24 tests per script
+  and 48 tests total.
+</p>
+
+<p>
+  The checker always writes <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">MANIFEST.txt</code> and warns if answers are
+  missing or still contain TODO placeholders. After the tests pass, it runs
+  the screens and saves the plots and data tables in
+  the <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">outputs</code> folder. Use them to answer the questions.
+</p>
+
+<p>
+  The checker does <strong>not</strong> upload anything to Canvas.
+  Written responses are reviewed separately.
+</p>
+
+<h3>Submit to Canvas</h3>
+
+<ol>
+  <li>
+    Zip the entire problem-set folder after running the checker, including your
+    source code, <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">responses.md</code>, data, generated <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">MANIFEST.txt</code>, and
+    <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">outputs</code> folder.
+  </li>
+  <li>
+    Rename the archive to
+    <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">CHEME-4800-5800-PS5-&lt;your netid&gt;.zip</code>.
+  </li>
+  <li>
+    Replace the complete <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">&lt;your netid&gt;</code> placeholder,
+    including the angle brackets, with your actual NetID. For example:
+    <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">CHEME-4800-5800-PS5-abc123.zip</code>.
+  </li>
+  <li>Upload the ZIP file to this Canvas assignment before the initial deadline.</li>
+</ol>
+
+<p>
+  If you cannot fix every failing test, submit your current work for partial credit.
+  <strong>You must submit something by the initial deadline to participate
+  in the infinite-revision policy.</strong> If you make no initial submission,
+  the assignment score is 0 and later revisions will not be accepted for credit.
+</p>
+
+<h3>Revisions</h3>
+
+<p>
+  After the initial deadline, eligible students may revise and resubmit PS5
+  through the end of the semester. Return to this same Canvas assignment,
+  select <strong>New Attempt</strong>, and upload the revised ZIP file.
+</p>
+
+<p>
+  Canvas may label these revisions “late.” That is expected and does not
+  create a penalty under the infinite-revision policy. Each revision will be
+  graded, and the highest score earned will be retained.
+</p>
+
+<h3>Collaboration and academic integrity</h3>
+
+<p>
+  Submit independent work. You may discuss the problem set with classmates,
+  but you may not share code or solutions directly. You may use Julia
+  documentation, AI tools, and internet resources, but you remain responsible
+  for understanding and explaining everything you submit.
+</p>
+
+<p>
+  The reference solution will be released after the initial deadline. You may
+  consult it to understand mistakes and debug your work, but your revision must
+  remain your own implementation. Copying, lightly renaming, or mechanically
+  reformatting reference-solution code does not constitute independent work.
+  Copying the reference solution results in a score of 0 for this assignment
+  and may trigger an academic-integrity review.
+</p>

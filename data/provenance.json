@@ -1,0 +1,40 @@
+{
+  "dataset": "Deoxyfluorination of 37 alcohols under 20 sulfonyl fluoride and base combinations",
+  "measurements": {
+    "authors": [
+      "Matthew K. Nielsen",
+      "Derek T. Ahneman",
+      "Orestes Riera",
+      "Abigail G. Doyle"
+    ],
+    "title": "Deoxyfluorination with Sulfonyl Fluorides: Navigating Reaction Space with Machine Learning",
+    "journal": "Journal of the American Chemical Society",
+    "year": 2018,
+    "volume": 140,
+    "issue": 15,
+    "pages": "5004-5008",
+    "doi": "10.1021/jacs.8b01523"
+  },
+  "repository_paper": {
+    "authors": "Wang, J. Y. et al.",
+    "title": "Identifying general reaction conditions by bandit optimization",
+    "journal": "Nature",
+    "year": 2024,
+    "volume": 626,
+    "pages": "1025-1033",
+    "doi": "10.1038/s41586-024-07021-y"
+  },
+  "repository": "https://github.com/doyle-lab-ucla/bandit-optimization",
+  "commit": "084bb561a200ee5950a215c7026012878a7bc065",
+  "source_file": "datasets/deoxyf.csv",
+  "source_url": "https://raw.githubusercontent.com/doyle-lab-ucla/bandit-optimization/084bb561a200ee5950a215c7026012878a7bc065/datasets/deoxyf.csv",
+  "source_sha256": "1c6b0f2401e2d945fc8f0fc0a905249eb2eb7e42fdc92782e85ab2cbb4c90e85",
+  "license": "MIT license of the source repository at the pinned commit (Copyright (c) 2012-2023 Jason Y. Wang and others); full text in data/LICENSE-bandit-optimization.txt. Later versions of the repository (from March 2025) use GPL-3.0; the shipped table comes from the MIT-licensed commit.",
+  "selection": "all 740 rows (37 alcohols, 20 conditions); only the alcohol ID, alcohol SMILES, sulfonyl fluoride, base, and yield columns are kept",
+  "row_order": "alcohols s1 to s37 by number; within each alcohol, sulfonyl fluoride in the order 3-Cl, PyFluor, 3-CF3, 3-NO2, PBSF, then base in the order DBU, MTBD, BTMG, BTPP",
+  "yield": "19F NMR yield of the alkyl fluoride product, percent, as published (integers from 0 to 106)",
+  "shipped_sha256": {
+    "deoxyfluorination.csv": "a0f1df44d9ae55ce7609fdf57b55dd08122627796ae7ce1dec1ea4a01198e468",
+    "LICENSE-bandit-optimization.txt": "24b56e199c7d6e860a769fc3158f179e758812a09f909db4a3339fa225bc88ac"
+  }
+}

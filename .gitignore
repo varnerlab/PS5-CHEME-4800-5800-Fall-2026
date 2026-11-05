@@ -1,0 +1,11 @@
+.DS_Store
+__pycache__/
+outputs/
+MANIFEST.txt
+*.zip
+solution/
+instructor/validation-output/
+instructor/reference/
+instructor/DESIGN.md
+instructor/plans/
+.claude/

@@ -1,0 +1,25 @@
+The reaction data in data/deoxyfluorination.csv come from a published
+high-throughput screen of deoxyfluorination reactions.
+
+Measurements: Nielsen, M. K., Ahneman, D. T., Riera, O., and Doyle, A. G.
+  (2018). Deoxyfluorination with sulfonyl fluorides: navigating reaction space
+  with machine learning. Journal of the American Chemical Society, 140(15),
+  5004-5008. https://doi.org/10.1021/jacs.8b01523
+
+File source: datasets/deoxyf.csv in the repository
+  https://github.com/doyle-lab-ucla/bandit-optimization
+  at commit 084bb561a200ee5950a215c7026012878a7bc065 (October 24, 2023), the
+  code and data of Wang, J. Y. et al. (2024). Identifying general reaction
+  conditions by bandit optimization. Nature, 626, 1025-1033.
+  https://doi.org/10.1038/s41586-024-07021-y
+
+License: at that commit, the repository is under the MIT license, Copyright
+(c) 2012-2023 Jason Y. Wang and others. The full license text is in
+data/LICENSE-bandit-optimization.txt. Later versions of the repository (from
+March 2025) use the GPL-3.0 license; the PS5 copy comes from the earlier,
+MIT-licensed commit.
+
+Changes: PS5 keeps the alcohol ID, the alcohol SMILES, the sulfonyl fluoride,
+the base, and the yield of each of the 740 reactions, drops the other columns,
+and sorts the rows by alcohol and then by condition. The values are unchanged.
+The code in this repository is under the MIT license in LICENSE.
