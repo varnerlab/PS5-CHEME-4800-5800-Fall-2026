@@ -1,59 +1,83 @@
 # PS5 written responses
 
 Answer all three questions. Each question has two parts, (a) and (b). Replace
-the line `TODO: Write your response.` with your answers, labeled (a) and (b).
-One to three sentences per part is enough. Give the numbers you use from the
-files in `outputs/`. Keep the blank line after each question; the checker uses
-it to find your answer.
+the line `TODO: Write your response.` with your answers, labeled (a) and (b). A
+short paragraph per part is enough. Give every number you use, copied from the
+files in `outputs/`. The README section [The three
+studies](README.md#the-three-studies) describes how each file is made; question
+1 uses study 1, question 2 uses study 2, and question 3 uses study 3. Keep the
+blank line after each question; the checker uses it to find your answer.
 
-1. **What did the screen learn?**
-   Use `screen-summary.csv` and `posteriors.png`. They show one screen of 480
-   experiments, run as 20 blocks of 24 wells on all 20 conditions. A condition's
-   true success fraction is the fraction of the 37 alcohols it fluorinates in at
-   least 50% yield.
-   - **(a)** The group picks the condition with the highest probability of being
-     best. Report the pick, its probability of being best, its number of
-     experiments, and its true success fraction. Is it the best condition?
-   - **(b)** The two best conditions differ by one alcohol in 37. From their true
-     success fractions, how many extra failed runs per 100 alcohols would the
-     group expect if it chose the second-best? Use their experiment counts and
-     their probabilities of being best to explain why 480 experiments cannot
-     reliably tell these two conditions apart.
+1. **What did the main screen learn?**
+   Use `screen-summary.csv` and `posteriors.png` from study 1. Both describe the
+   main screen: 480 experiments on all 20 conditions, run as 20 blocks of 24
+   wells. A condition's true success fraction (column `true_success_fraction`) is
+   the fraction of the 37 alcohols it fluorinates in at least 50% yield. The best
+   condition is the one with the highest true success fraction. The company
+   cannot see the true success fractions, so its pick is the condition with the
+   highest probability of being best (column `probability_best`).
+   - **(a)** Report the company's pick, its probability of being best, its number
+     of experiments, and its true success fraction. Is the pick the best
+     condition? If not, name the best condition and give its true success
+     fraction.
+   - **(b)** Find the two conditions with the highest true success fractions;
+     they differ by one alcohol in 37. Suppose the company made the second of the
+     two its default instead of the best. On average, how many more of every 100
+     new alcohols would fail (give less than 50% yield)? Then, for each of the
+     two conditions, report its number of experiments and its probability of
+     being best, and find its posterior in `posteriors.png`. Use the experiment
+     counts, the probabilities of being best, and the two posteriors to explain
+     why 480 experiments cannot reliably tell the two conditions apart.
 
    TODO: Write your response.
 
 2. **What do reaction blocks cost?**
-   Use `plate-sizes.csv` and `gap-loss.png`. Each Thompson sampling row
-   averages 100 screens of 480 experiments; the equal-split row is computed from
-   the true success fractions. The gap loss of a screen is the number of extra
-   failed runs you expect from running the conditions it chose instead of the
-   best condition every time.
-   - **(a)** Report the days and the mean gap loss for blocks of 1, 24, 96, and
-     480 wells, and the gap loss of the equal split, which runs every condition
-     on 24 alcohols.
-   - **(b)** Each well draws its own samples from the posteriors as they stand at
-     the start of its block. Use this to explain why one 480-well block loses as
-     much as the equal split, and why 24-well blocks lose about as much as
-     running one reaction at a time.
+   Use `plate-sizes.csv` from study 2 for the numbers and `gap-loss.png` to see
+   how the gap loss grows during a screen. The gap loss of a screen is the
+   expected number of extra failed experiments compared with running the best
+   condition in all 480 experiments. In `plate-sizes.csv`, each row with
+   `strategy` equal to `thompson` averages 100 Thompson sampling screens of 480
+   experiments, all with the block size in `wells_per_block`; each block takes 2
+   days. The row with `strategy` equal to `equal_split` runs every condition on
+   exactly 24 alcohols; it is computed from the true success fractions, not
+   simulated.
+   - **(a)** For blocks of 1, 24, 96, and 480 wells, report the days the screen
+     takes (column `days`) and its mean gap loss (column `mean_gap_loss`). Also
+     report the gap loss of the equal split.
+   - **(b)** In a block, each well draws its own samples from the posteriors as
+     they stand at the start of the block, and the posteriors update only after
+     the whole block. Use this rule to explain two results: (i) one 480-well
+     block has about the same gap loss as the equal split; (ii) 24-well blocks
+     have about the same gap loss as 1-well blocks, which run one reaction at a
+     time.
 
    TODO: Write your response.
 
 3. **PBSF is banned.**
-   When PBSF converts an alcohol to its fluoride, it releases
-   perfluorobutanesulfonate, the anion of PFBS (perfluorobutane sulfonic acid). In
-   January 2020, the European Union added PFBS and its salts to its REACH
-   Candidate List of substances of very high concern. Suppose the company bans
-   PBSF after the first screen, which leaves the 16 conditions that use one of the
-   other four sulfonyl fluorides. Use `pbsf-ban.csv` and `conditions.csv`.
-   - **(a)** From the first screen, report the number of the 480 experiments that
-     used a PBSF-free condition; the most experiments any one PBSF-free condition
-     got; and the PBSF-free condition with the highest probability of being best
-     among the 16, with that probability. Explain, from how Thompson sampling
-     chooses conditions, why the first screen says little about which PBSF-free
-     condition is best.
-   - **(b)** From the new 16-condition screen, report its pick and that
-     condition's true success fraction. Give the cost of the ban as extra failed
-     runs per 100 alcohols, compared with the PBSF condition with the highest true
-     success fraction.
+   When PBSF (perfluorobutanesulfonyl fluoride) converts an alcohol to its
+   fluoride, it releases perfluorobutanesulfonate, the anion of PFBS
+   (perfluorobutane sulfonic acid). In January 2020, the European Union added
+   PFBS and its salts to the Candidate List of substances of very high concern
+   under its chemicals regulation, REACH (Registration, Evaluation, Authorisation
+   and Restriction of Chemicals). Suppose the company bans PBSF after the main
+   screen. That leaves the 16 PBSF-free conditions, which use 3-Cl, PyFluor,
+   3-CF3, or 3-NO2. The company then runs a new screen on only these 16
+   conditions: 480 experiments, as 20 blocks of 24 wells. Use `pbsf-ban.csv` from
+   study 3 and `conditions.csv`. In `pbsf-ban.csv`, the columns that start with
+   `main_screen_` come from the main screen, and the columns that start with
+   `new_screen_` come from the new screen. Both probability-of-being-best columns
+   compare each condition with the other 15 PBSF-free conditions only.
+   - **(a)** From the main screen, report (i) how many of the 480 experiments
+     used a PBSF-free condition, (ii) the most experiments any one PBSF-free
+     condition got, and (iii) the PBSF-free condition with the highest
+     probability of being best, with that probability and its true success
+     fraction. Then explain why the main screen says little about which PBSF-free
+     condition is best. Base your explanation on how Thompson sampling chooses
+     which condition to run.
+   - **(b)** Report the new screen's pick (the condition with the highest
+     `new_screen_probability_best`) and the pick's true success fraction. Then
+     give the cost of the ban: on average, how many more of every 100 new
+     alcohols would fail with the new screen's pick than with the best condition
+     from question 1, which uses PBSF?
 
    TODO: Write your response.

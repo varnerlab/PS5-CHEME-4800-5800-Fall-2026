@@ -291,7 +291,7 @@ wrong length or an entry that is not positive.
 ```julia
 # result is a game from my_thompson_sampling or plate_thompson_sampling (see their examples)
 p = probability_best(result.S, result.F, 10_000; rng = MersenneTwister(5800));
-argmax(p) # the arm most likely to be the best: the group's pick
+argmax(p) # the arm most likely to be the best: the company's pick
 ```
 """
 function probability_best(S::Array{Int64,1}, F::Array{Int64,1}, N::Int64; rng::AbstractRNG,

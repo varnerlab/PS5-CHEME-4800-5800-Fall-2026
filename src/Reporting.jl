@@ -406,11 +406,11 @@ function write_ban(directory, screen, θ, pbsf_free, game, first_best, game_free
 
     # Write one header line, then one line per PBSF-free condition -
     io = open(joinpath(directory, "pbsf-ban.csv"), "w");
-    println(io, "condition,first_screen_experiments,first_screen_posterior_mean,first_screen_probability_best," *
+    println(io, "condition,main_screen_experiments,main_screen_posterior_mean,main_screen_probability_best," *
         "new_screen_experiments,new_screen_posterior_mean,new_screen_probability_best,true_success_fraction");
     for k in 1:length(pbsf_free)
         a = pbsf_free[k]; # the column of this condition in the full table
-        S1 = game.S[a]; # successes in the main (first) screen
+        S1 = game.S[a]; # successes in the main screen
         F1 = game.F[a];
         S2 = game_free.S[k]; # successes in the new screen; its column k is condition a
         F2 = game_free.F[k];

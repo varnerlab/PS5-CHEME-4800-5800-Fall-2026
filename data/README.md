@@ -23,22 +23,31 @@ Code and data: [doyle-lab-ucla/bandit-optimization](https://github.com/doyle-lab
 ## The reactions
 
 Each reaction replaces the –OH group of an alcohol with –F. The alcohol, a
-sulfonyl fluoride (1.1 equiv), and a base (1.5 equiv) react in THF (0.4 M) at
-room temperature for 48 h. The yield is the percent of the alcohol converted to
-the alkyl fluoride, measured by ¹⁹F NMR of the crude reaction mixture. The paper
-screened 32 alcohols and tested its model on 5 more; the file has all 37.
+sulfonyl fluoride (1.1 equiv), and a base (1.5 equiv) react at 0.4 M in
+tetrahydrofuran (THF) at room temperature for 48 h. The yield is the percent of
+the alcohol converted to the alkyl fluoride, measured by fluorine-19 nuclear
+magnetic resonance (¹⁹F NMR) spectroscopy of the crude reaction mixture. The
+paper screened 32 alcohols and tested its model on 5 more; the file has all 37.
 
 A **condition** is one sulfonyl fluoride paired with one base. The screen used
-5 sulfonyl fluorides (3-Cl, PyFluor, 3-CF3, 3-NO2, and PBSF) and 4 bases (DBU,
-MTBD, BTMG, and BTPP), so there are 20 conditions. Everything else is the same
-in every reaction.
+5 sulfonyl fluorides and 4 bases, so there are 20 conditions. Everything else is
+the same in every reaction. The file uses the paper's short label for each
+reagent:
 
-The labels are the paper's. 3-Cl, 3-CF3, and 3-NO2 are 4-chloro-,
-4-(trifluoromethyl)-, and 4-nitrobenzenesulfonyl fluoride; the 3 is a compound
-number, not a ring position. PyFluor is pyridine-2-sulfonyl fluoride, and PBSF is
-perfluorobutanesulfonyl fluoride (C4F9SO2F). DBU is an amidine base, MTBD and
-BTMG are guanidine bases, and BTPP is a phosphazene base. THF is
-tetrahydrofuran.
+| Label | Full name | Type |
+|---|---|---|
+| 3-Cl | 4-chlorobenzenesulfonyl fluoride | sulfonyl fluoride |
+| PyFluor | pyridine-2-sulfonyl fluoride | sulfonyl fluoride |
+| 3-CF3 | 4-(trifluoromethyl)benzenesulfonyl fluoride | sulfonyl fluoride |
+| 3-NO2 | 4-nitrobenzenesulfonyl fluoride | sulfonyl fluoride |
+| PBSF | perfluorobutanesulfonyl fluoride (C4F9SO2F) | sulfonyl fluoride |
+| DBU | 1,8-diazabicyclo[5.4.0]undec-7-ene | amidine base |
+| MTBD | 7-methyl-1,5,7-triazabicyclo[4.4.0]dec-5-ene | guanidine base |
+| BTMG | 2-*tert*-butyl-1,1,3,3-tetramethylguanidine | guanidine base |
+| BTPP | *tert*-butylimino-tri(pyrrolidino)phosphorane | phosphazene base |
+
+In 3-Cl, 3-CF3, and 3-NO2, the 3 is the paper's compound number, not a ring
+position.
 
 ## File layout
 
@@ -47,7 +56,7 @@ Each row of [deoxyfluorination.csv](deoxyfluorination.csv) is one reaction:
 | Column | Meaning |
 |---|---|
 | `alcohol` | The alcohol's ID, `s1` to `s37`. |
-| `alcohol_smiles` | The alcohol's structure, written as a SMILES string. |
+| `alcohol_smiles` | The alcohol's structure, written as a SMILES (Simplified Molecular Input Line Entry System) string. |
 | `sulfonyl_fluoride` | The sulfonyl fluoride used. |
 | `base` | The base used. |
 | `yield_percent` | The ¹⁹F NMR yield of the alkyl fluoride, in percent. |
