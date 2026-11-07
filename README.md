@@ -145,10 +145,8 @@ world = a -> run_reaction(screen.yields, a, rng); # world(a) runs one experiment
 Before any runs, the company believes every success fraction from 0 to 1 is
 equally likely: the **prior** $\text{Beta}(1,1)$. After $S(a)$ successes and
 $F(a)$ failures with condition $a$, the company's updated belief, the **posterior**, is
-$\text{Beta}(1+S(a),1+F(a))$. The posterior is a curve over 0 to 1 that peaks
-near the observed success fraction and gets narrower as runs add up. Thompson
-sampling draws one sample from each condition's posterior and runs the condition
-with the largest sample.
+$\text{Beta}(1+S(a),1+F(a))$. Thompson sampling draws one sample from each
+condition's posterior and runs the condition with the largest sample.
 
 Implement in [src/Compute.jl](src/Compute.jl):
 
