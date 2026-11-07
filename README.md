@@ -70,10 +70,9 @@ Every reaction is run the same way. The alcohol is dissolved in tetrahydrofuran
 fluoride and base are given in equivalents (equiv), the moles of reagent per mole
 of alcohol: each reaction uses 1.1 equiv of sulfonyl fluoride and 1.5 equiv of
 base, so their starting concentrations are 0.44 M and 0.60 M. The mixture reacts
-at room temperature for 48 h. The sulfonyl fluoride turns the –OH into a
+at room temperature for 48 h. The sulfonyl fluoride converts the hydroxyl –OH group on the alcohol into a
 sulfonate ester and releases fluoride, which then replaces the sulfonate. The 20
-conditions pair
-each of 5 sulfonyl fluorides with each of 4 bases. PS5 uses the paper's short
+conditions pair each of 5 sulfonyl fluorides with each of 4 bases. PS5 uses the paper's short
 label for each reagent:
 
 | Label | Full name | Type |
@@ -88,20 +87,17 @@ label for each reagent:
 | BTMG | 2-*tert*-butyl-1,1,3,3-tetramethylguanidine | guanidine base |
 | BTPP | *tert*-butylimino-tri(pyrrolidino)phosphorane | phosphazene base |
 
-In 3-Cl, 3-CF3, and 3-NO2, the 3 is the paper's compound number, not a ring
-position.
+In 3-Cl, 3-CF3, and 3-NO2, the 3 is the paper's compound number (not a ring
+position).
 
 The **yield** is the percent of the alcohol converted to the alkyl fluoride,
 measured by fluorine-19 nuclear magnetic resonance (¹⁹F NMR) spectroscopy of the
 crude reaction mixture. The 50% cutoff for a success is our choice, not the
 paper's.
 
-In PS5, the paper's yields stand in for the company's lab. In the lab, each
-experiment would use a new alcohol, but we have yields for only these 37. So PS5
-simulates each experiment: the simulator draws one of the 37 alcohols at random,
-with repeats allowed, and looks up that alcohol's measured yield under the
-chosen condition. A repeated alcohol gives the same yield: the simulation has no
-run-to-run noise.
+PS5 uses the paper's yields to simulate the company's experiments. For each
+experiment, the simulator draws one of the 37 alcohols at random and looks up
+that alcohol's measured yield under the chosen condition.
 
 Calling `screen = load_screen()` ([src/Data.jl](src/Data.jl)) loads the paper's
 data into `screen`, which has these fields:
@@ -124,9 +120,9 @@ draws every alcohol with the same chance, $\theta_a$ is also the success
 probability of one run with condition $a$. Only we know it; the company sees
 only the reward of each run.
 
-The simulator `run_reaction(yields, a, rng)` ([src/Lab.jl](src/Lab.jl)) runs one
-experiment with condition `a`: it draws one alcohol, `i = rand(rng, 1:37)`, and
-returns `1` if `yields[i, a] >= 50.0` and `0` otherwise. As in the L10d lab, the
+The simulator is the function `run_reaction(yields, a, rng)`
+([src/Lab.jl](src/Lab.jl)). For condition `a`, it draws the alcohol with
+`i = rand(rng, 1:37)` and returns `1` if `yields[i, a] >= 50.0` and `0` otherwise. As in the L10d lab, the
 bandit functions never see the table. They take the **world**, a function that
 runs one experiment: `world(a)` returns the reward of one run with condition
 `a`. The supplied code makes the world in one line:
