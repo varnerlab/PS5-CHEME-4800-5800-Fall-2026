@@ -3,9 +3,9 @@
 A chemical company works as a contract research organization (CRO): it makes
 compounds to order for drug discovery clients. Many orders are alkyl fluorides,
 which are high-value targets in drug development. Each order specifies a starting alcohol
-and asks the CRO to synthesize a small amount of its fluoride to test. The company makes each fluoride
+and asks the CRO to synthesize a small amount of that alcohol's fluoride to test. The company makes each fluoride
 by **deoxyfluorination**: this reaction replaces the alcohol's hydroxyl –OH group with a
-–F (fluorine) group under basic conditions. It uses sulfonyl fluorides as the fluorinating reagents, which are inexpensive and,
+–F (fluorine) group under basic conditions. The company uses sulfonyl fluorides as the fluorinating reagents, which are inexpensive and,
 unlike the traditional reagent diethylaminosulfur trifluoride (DAST), thermally
 stable.
 
@@ -30,14 +30,14 @@ successes as possible while it learns which condition is best.
 We'll explore this question using a **binary Bernoulli bandit**:
 
 - Each of the 20 conditions is an arm.
-- Each run pulls one arm: it uses that condition on the next alcohol in the company's order queue.
+- Each run pulls one arm: the run uses that arm's condition on the next alcohol in the company's order queue.
 - The reward is `1` for a success and `0` for a failure.
 - Each arm's success probability is the fraction of alcohols that its condition
   fluorinates in at least 50% yield. The company does not know these
   probabilities; it learns them from the rewards. We'll model these success probabilities using beta distributions, which are updated each time new results arrive.
 
-You will use Thompson sampling to choose the arm for each run, run it in
-24-well reaction blocks (24 reactions run at once, as in the company's lab), and use the results to pick the default
+You will use Thompson sampling to choose the arm for each run, with the runs
+grouped in 24-well reaction blocks (24 reactions run at once, as in the company's lab), and use the results to pick the default
 condition. With the same tools, you will also measure what larger reaction
 blocks cost, and what a potential ban on one of the sulfonyl fluoride compounds, perfluorobutanesulfonyl
 fluoride (PBSF), could cost the company.
@@ -56,7 +56,7 @@ The first command installs the packages. The second runs the
 
 Write your code in [src/Compute.jl](src/Compute.jl) and your answers in
 [responses.md](responses.md). Do not edit any other files, with one exception: if you put
-helper functions in a new file in `src/`, add it to [Include.jl](Include.jl), so that `Compute.jl` can use it.
+helper functions in a new file in `src/`, add that file to [Include.jl](Include.jl), so that `Compute.jl` can use the helper functions.
 
 ## Materials and Methods
 
@@ -122,16 +122,17 @@ Each condition has a number, `a`, which is its column in `screen.yields`:
 For example, condition 19 is PBSF/BTMG, and its yields are in column 19.
 
 The **true success fraction** of condition $a$, written $\theta_a$, is the
-fraction of the 37 alcohols that it fluorinates in at least 50% yield. For
-example, condition 1 (3-Cl/DBU) gives at least 50% yield on 4 of the 37
-alcohols, so its true success fraction is 4/37, about 0.11. Each simulated run
-draws one of the 37 alcohols with equal chance, so $\theta_a$ is also the
-probability that one run with condition $a$ succeeds. The company never sees
-$\theta_a$; it sees only whether each run succeeded. You compute $\theta_a$ in
+fraction of the 37 alcohols that condition $a$ fluorinates in at least 50%
+yield. For example, condition 1 (3-Cl/DBU) gives at least 50% yield on 4 of the
+37 alcohols, so the true success fraction of condition 1 is 4/37, about 0.11.
+
+Each simulated run draws one of the 37 alcohols with equal chance. So $\theta_a$
+is also the probability that one run with condition $a$ succeeds. The company
+never sees $\theta_a$, only whether each run succeeded. You compute $\theta_a$ in
 Part 1.
 
 The simulator is the function `run_reaction(yields, a, rng)`
-([src/Lab.jl](src/Lab.jl)). For condition `a`, it draws the alcohol with
+([src/Lab.jl](src/Lab.jl)). For condition `a`, `run_reaction` draws the alcohol with
 `i = rand(rng, 1:37)` and returns `1` if `yields[i, a] >= 50.0` and `0` otherwise. As in the L10d lab, the
 bandit functions never see the table. They take the **world**, a function that
 runs one experiment: `world(a)` returns the reward of one run with condition
@@ -150,7 +151,7 @@ exactly the same numbers.
 
 Before any runs, the company believes every success fraction from 0 to 1 is
 equally likely: the **prior** $\text{Beta}(1,1)$. After $S(a)$ successes and
-$F(a)$ failures with condition $a$, its updated belief, the **posterior**, is
+$F(a)$ failures with condition $a$, the company's updated belief, the **posterior**, is
 $\text{Beta}(1+S(a),1+F(a))$. The posterior is a curve over 0 to 1 that peaks
 near the observed success fraction and gets narrower as runs add up. Thompson
 sampling draws one sample from each condition's posterior and runs the condition
@@ -188,7 +189,7 @@ series of blocks run one after another.
 
 At the end of a screen, the company picks a condition. A condition's
 **probability of being best** is the chance, given the posteriors, that its true
-success fraction is the highest of all. To estimate it, draw one sample from
+success fraction is the highest of all. To estimate this probability, draw one sample from
 every posterior many times and count how often each condition has the largest
 sample. **The company's pick is the condition with the highest probability of
 being best.**
@@ -230,9 +231,10 @@ reports, one study per question. All three studies use these terms:
   $\mu^\star$. The company cannot see the true success fractions. The reports
   show them so you can judge the company's choices.
 - **Gap** of condition $a$: $\Delta(a)=\mu^\star-\theta_a$, the average number
-  of successes per experiment it gives up compared with the best condition.
+  of successes per experiment that condition $a$ gives up compared with the best
+  condition.
 - **Gap loss** of a screen: $G(T)=\sum_{t=1}^{T}\Delta(a_t)$, the sum of the
-  gaps of the conditions used in its experiments. It is the expected number of
+  gaps of the conditions used in the screen's experiments. The gap loss is the expected number of
   extra failed experiments compared with using the best condition in every
   experiment.
 
@@ -243,10 +245,10 @@ reports, one study per question. All three studies use these terms:
 | 3. PBSF ban | The 16 without PBSF | 1 new screen, plus the counts from study 1 | 24 | `pbsf-ban.csv` | 3 |
 
 One more report, `conditions.csv`, comes from the yield table, not from a
-screen. It has one row per condition: its `sulfonyl_fluoride` and `base`;
-`alcohols_at_or_above_cutoff`, the number of the 37 alcohols it fluorinates in
-at least 50% yield; `alcohols`, which is 37; its `true_success_fraction`; and
-its `gap`.
+screen. The file has one row per condition, with these columns: `condition`,
+`sulfonyl_fluoride`, and `base`; `alcohols_at_or_above_cutoff`, the number of the
+37 alcohols that the condition fluorinates in at least 50% yield; `alcohols`,
+which is 37; `true_success_fraction`; and `gap`.
 
 ### Study 1: the main screen
 
@@ -255,9 +257,10 @@ blocks of 24 wells, for 480 experiments over 40 days. After the last block,
 `probability_best` uses 10,000 sets of samples, and the pick becomes the
 company's default condition for new alcohols. Reports:
 
-- `screen-summary.csv`: one row per condition, with its `experiments` (the
-  number of wells that used it), `successes`, `failures`, `posterior_mean` (the
-  mean of its posterior), `probability_best`, and `true_success_fraction`.
+- `screen-summary.csv`: one row per condition, with these columns: `experiments`
+  (the number of wells that used the condition), `successes`, `failures`,
+  `posterior_mean` (the mean of the condition's posterior), `probability_best`,
+  and `true_success_fraction`.
 - `posteriors.png`: the posteriors after the 480 experiments, for the six
   conditions with the most experiments and for the condition with the lowest
   true success fraction. A dashed line marks each condition's true success
@@ -279,11 +282,11 @@ with five block sizes. Every screen has 480 experiments:
 
 The results of one screen depend on which alcohols the simulator happens to
 draw. So for each block size, the script runs 100 screens, each with different
-random draws, and averages them. Each screen's pick uses `probability_best`
+random draws, and averages the results of the 100 screens. Each screen's pick uses `probability_best`
 with 2,000 sets of samples.
 
 The comparison also has a baseline with no learning, the **equal split**: run
-every condition on 24 alcohols, 20 × 24 = 480 experiments. Its gap loss is 24
+every condition on 24 alcohols, 20 × 24 = 480 experiments. The equal split's gap loss is 24
 times the sum of the 20 gaps, computed from the true success fractions rather
 than simulated. Reports:
 
@@ -302,27 +305,27 @@ than simulated. Reports:
 ### Study 3: the PBSF ban
 
 Suppose that after the main screen the company bans PBSF. When PBSF fluorinates
-an alcohol, it releases the anion of perfluorobutane sulfonic acid (PFBS), which
+an alcohol, the reaction releases the anion of perfluorobutane sulfonic acid (PFBS), which
 the European Union lists as a substance of very high concern; question 3 gives
 the details. Without PBSF, 16 conditions remain: columns 1–16, which use 3-Cl,
 PyFluor, 3-CF3, or 3-NO2. The script looks for the best of these 16 in two ways:
 
-1. **From the main screen's counts.** It keeps the main screen's counts for the
+1. **From the main screen's counts.** The script keeps the main screen's counts for the
    16 PBSF-free conditions, drops the 4 PBSF conditions, and runs
    `probability_best` on the 16 (10,000 sets of samples). This takes no new
    experiments.
-2. **From a new screen.** It runs a new screen on the 16 PBSF-free conditions
+2. **From a new screen.** The script runs a new screen on the 16 PBSF-free conditions
    only: 20 blocks of 24 wells, 480 experiments over 40 days. Like every screen,
-   it starts again from the prior. Its pick is the condition with the highest
+   the new screen starts again from the prior. The new screen's pick is the condition with the highest
    probability of being best among the 16 (10,000 sets of samples).
 
 Report:
 
 - `pbsf-ban.csv`: one row per PBSF-free condition. The three columns that start
-  with `main_screen_` give its experiments, posterior mean, and probability of
-  being best among the 16, from the main screen's counts. The three columns that
-  start with `new_screen_` give the same numbers from the new screen. The last
-  column is its `true_success_fraction`.
+  with `main_screen_` give the condition's experiments, posterior mean, and
+  probability of being best among the 16, from the main screen's counts. The
+  three columns that start with `new_screen_` give the same numbers from the new
+  screen. The last column is the condition's `true_success_fraction`.
 
 ## Check and submit
 

@@ -12,7 +12,8 @@ blank line after each question; the checker uses it to find your answer.
    Use `screen-summary.csv` and `posteriors.png` from study 1. Both describe the
    main screen: 480 experiments on all 20 conditions, run as 20 blocks of 24
    wells. A condition's true success fraction (column `true_success_fraction`) is
-   the fraction of the 37 alcohols it fluorinates in at least 50% yield. The best
+   the fraction of the 37 alcohols that the condition fluorinates in at least 50%
+   yield. The best
    condition is the one with the highest true success fraction. The company
    cannot see the true success fractions, so its pick is the condition with the
    highest probability of being best (column `probability_best`).
@@ -55,8 +56,8 @@ blank line after each question; the checker uses it to find your answer.
    TODO: Write your response.
 
 3. **What would a PBSF ban cost?**
-   When PBSF (perfluorobutanesulfonyl fluoride) converts an alcohol to its
-   fluoride, it releases perfluorobutanesulfonate, the anion of PFBS
+   When PBSF (perfluorobutanesulfonyl fluoride) fluorinates an alcohol, the
+   reaction releases perfluorobutanesulfonate, the anion of PFBS
    (perfluorobutane sulfonic acid). In January 2020, the European Union added
    PFBS and its salts to the Candidate List of substances of very high concern
    under its chemicals regulation, REACH (Registration, Evaluation, Authorisation
