@@ -205,101 +205,23 @@ julia --startup-file=no --project=. testme_part_2.jl
 julia --startup-file=no --project=. runscreen.jl
 ```
 
-## The three studies
+## Run the screens
 
-The script `runscreen.jl` uses your four functions and the simulator to run
-three studies, one for each question in [responses.md](responses.md):
+The script `runscreen.jl` uses your four functions and the simulator to run the
+company's **main screen**: 480 experiments on all 20 conditions, as 20 blocks of
+24 wells. The main screen's pick becomes the company's default condition for new
+alcohols. The script then runs the screens for questions 2 and 3, prints the
+picks, and writes these files to the `outputs/` directory:
 
-1. **Study 1, the main screen.** The company runs one screen and makes its pick
-   the default condition for new alcohols. Question 1 asks which condition the
-   company picks and whether the pick is the best condition.
-2. **Study 2, block size.** We'll repeat the main screen with smaller and larger
-   reaction blocks. Question 2 asks what larger blocks save in days and what they
-   cost in successes.
-3. **Study 3, the PBSF ban.** Suppose the company bans PBSF after the main
-   screen. Question 3 asks which PBSF-free condition the company should use
-   instead, and how many more alcohols would fail without PBSF.
+| File | Contents |
+|---|---|
+| `conditions.csv` | Each condition's true success fraction, computed from the yield table. |
+| `screen-summary.csv` | The main screen: each condition's experiments, successes, failures, posterior mean, probability of being best, and true success fraction. |
+| `posteriors.png` | The posteriors after the main screen, for the six conditions with the most experiments and for the condition with the lowest true success fraction. A dashed line marks each condition's true success fraction. |
+| `plate-sizes.csv` | The main screen repeated with blocks of 1, 6, 24, 96, and 480 wells, 100 screens for each block size: the days a screen takes, the mean number of successes, and how often the pick is the best condition or one of the two best. The last row is the **equal split**, which runs every condition on 24 alcohols, with no learning. |
+| `pbsf-ban.csv` | The 16 conditions without PBSF: each condition's experiments, posterior mean, and probability of being best among the 16, from the main screen and from a **new screen** of 480 experiments on only these 16 conditions, and the condition's true success fraction. |
 
-The script prints the picks and writes the reports for each study to the
-`outputs/` directory. The reports list each condition's true success fraction,
-so that you can judge the company's picks. One more report, `conditions.csv`,
-comes from the yield table, not from a screen. The file has one row per condition, with these columns: `condition`,
-`sulfonyl_fluoride`, and `base`; `alcohols_at_or_above_cutoff`, the number of the
-37 alcohols that the condition fluorinates in at least 50% yield; `alcohols`,
-which is 37; and `true_success_fraction`.
-
-### Study 1: the main screen
-
-The main screen runs all 20 conditions as 20 blocks of 24 wells, for 480
-experiments over 40 days. After the last block, the script calls
-`probability_best` with 10,000 sets of samples to find the company's pick.
-Reports:
-
-- `screen-summary.csv`: one row per condition, with these columns: `experiments`
-  (the number of wells that used the condition), `successes`, `failures`,
-  `posterior_mean` (the mean of the condition's posterior), `probability_best`,
-  and `true_success_fraction`.
-- `posteriors.png`: the posteriors after the 480 experiments, for the six
-  conditions with the most experiments and for the condition with the lowest
-  true success fraction. A dashed line marks each condition's true success
-  fraction.
-
-### Study 2: block size
-
-A larger block finishes a screen in fewer days, but the posteriors update less
-often. To measure this trade-off, the script runs screens on all 20 conditions
-with five block sizes:
-
-| Wells per block | Blocks | Days | Function |
-|---|---|---|---|
-| 1 | 480 | 960 | `my_thompson_sampling` (one reaction at a time) |
-| 6 | 80 | 160 | `plate_thompson_sampling` |
-| 24 | 20 | 40 | `plate_thompson_sampling` (the main screen's setup) |
-| 96 | 5 | 10 | `plate_thompson_sampling` |
-| 480 | 1 | 2 | `plate_thompson_sampling` |
-
-The results of one screen depend on which alcohols the simulator happens to
-draw. So for each block size, the script runs 100 screens, each with different
-random draws, and averages the results of the 100 screens. Each screen's pick uses `probability_best`
-with 2,000 sets of samples.
-
-The comparison also has a baseline with no learning, the **equal split**: run
-every condition on 24 alcohols, 20 × 24 = 480 experiments. The script computes
-the equal split's expected number of successes, 24 times the sum of the 20 true
-success fractions, instead of simulating the equal split. Report:
-
-- `plate-sizes.csv`: one row per block size, with `strategy` equal to
-  `thompson`, then one row for the equal split, with `strategy` equal to
-  `equal_split`. The columns are `wells_per_block`, `blocks`, and `days`;
-  `mean_successes`, the mean number of successes in a screen of 480
-  experiments; `pick_is_best`, the fraction of screens whose pick is the best
-  condition; and `pick_in_top_two`, the fraction whose pick is the best or the
-  second-best condition. The equal-split row fills in only `mean_successes`.
-
-### Study 3: the PBSF ban
-
-The company would ban PBSF because, when PBSF fluorinates an alcohol, the
-reaction releases the anion of perfluorobutane sulfonic acid (PFBS), which the
-European Union lists as a substance of very high concern; question 3 gives the
-details. Without PBSF, 16 conditions remain: columns 1–16, which use 3-Cl,
-PyFluor, 3-CF3, or 3-NO2. The script looks for the best of these 16 in two ways:
-
-1. **From the main screen's counts.** The script keeps the main screen's counts for the
-   16 PBSF-free conditions, drops the 4 PBSF conditions, and runs
-   `probability_best` on the 16 (10,000 sets of samples). This step takes no new
-   experiments.
-2. **From a new screen.** The script runs a new screen on the 16 PBSF-free conditions
-   only: 20 blocks of 24 wells, 480 experiments over 40 days. The new screen's
-   pick is the condition with the highest probability of being best among the 16
-   (10,000 sets of samples).
-
-Report:
-
-- `pbsf-ban.csv`: one row per PBSF-free condition. The three columns that start
-  with `main_screen_` give the condition's experiments, posterior mean, and
-  probability of being best among the 16, from the main screen's counts. The
-  three columns that start with `new_screen_` give the same numbers from the new
-  screen. The last column is the condition's `true_success_fraction`.
+Use these files to answer the three questions in [responses.md](responses.md).
 
 ## Check and submit
 
