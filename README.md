@@ -132,19 +132,14 @@ The simulator is the function `run_reaction(yields, a, rng)`
 
 Your two Thompson sampling functions, `my_thompson_sampling` and
 `plate_thompson_sampling`, never see the yield table. Instead, both functions
-take the **world** as the first argument. The world is a function that runs one
-experiment: `world(a)` returns the reward of one run with condition `a`. The
+take the **world** function as the first argument. The world is a function that runs one
+experiment: `world(a)` returns the reward of one run of condition `a`. The
 supplied code makes the world in one line:
 
 ```julia
 rng = MersenneTwister(5825); # one random number generator for your functions and the world
 world = a -> run_reaction(screen.yields, a, rng); # world(a) runs one experiment with condition a
 ```
-
-Your functions and the world share this one generator. Each of your functions
-must draw its random numbers in the order that its description in
-[src/Compute.jl](src/Compute.jl) gives, so every correct solution gets exactly
-the same numbers.
 
 ## Part 1: Thompson sampling, one reaction at a time
 
