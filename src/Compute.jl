@@ -91,15 +91,15 @@ the success probability of arm `a` with a Beta distribution:
 In each round `t = 1, 2, ..., T`, carry out these four steps, drawing random numbers in
 exactly this order:
 
-1. Draw one sample `p[a]` from the posterior of every arm, for `a = 1, 2, ..., K` in
-   order: `p[a] = rand(rng, Beta(α[a] + S[a], β[a] + F[a]))`.
-2. Choose the arm `aₜ` with the largest sample, `aₜ = argmax(p)` (on a tie, `argmax`
+1. Draw one random number `p[a]` from the posterior of every arm, for
+   `a = 1, 2, ..., K` in order: `p[a] = rand(rng, Beta(α[a] + S[a], β[a] + F[a]))`.
+2. Choose the arm `aₜ` with the largest `p[a]`, `aₜ = argmax(p)` (on a tie, `argmax`
    returns the first one).
 3. Run the experiment by calling `world(aₜ)` once. It returns the reward `rₜ`, `1` or `0`.
 4. Update the counts of arm `aₜ`: one more success if `rₜ = 1`, or one more failure if
    `rₜ = 0`.
 
-An arm with few runs has a wide posterior, so its sample is sometimes the largest
+An arm with few runs has a wide posterior, so its `p[a]` is sometimes the largest
 even when its posterior mean is lower than another arm's. Then the arm is tried
 again. This is how Thompson sampling explores.
 
@@ -108,7 +108,7 @@ again. This is how Thompson sampling explores.
   returns its reward, `1` or `0`. The agent sees only these rewards.
 - `K::Int64`: the number of arms, at least 1.
 - `T::Int64`: the number of rounds, at least 1.
-- `rng::AbstractRNG`: the random number generator for the samples from the
+- `rng::AbstractRNG`: the random number generator for the draws from the
   posteriors. It has no default, so you must pass one. In PS5, the agent and the
   world share one generator, so a new generator made from the same seed repeats the
   whole game.
@@ -150,11 +150,11 @@ function my_thompson_sampling(world::Function, K::Int64, T::Int64; rng::Abstract
     # Initialize -
     # Start the counts S and F at zero, one entry per arm, and make vectors to hold
     # the action and the reward of each round. zeros(Int64, n) makes n whole-number zeros.
-    # Also make p = zeros(K) to hold one posterior sample per arm.
+    # Also make p = zeros(K) to hold one random number p[a] per arm.
 
     # Play the rounds: for t in 1:T -
     # Step 1: for a in 1:K, set p[a] = rand(rng, Beta(α[a] + S[a], β[a] + F[a])).
-    # Step 2: choose the arm with the largest sample, argmax(p).
+    # Step 2: choose the arm with the largest p[a], argmax(p).
     # Step 3: call world once with that arm to get the reward r; throw an
     #         ArgumentError if r is not 0 or 1; store the arm and r for round t.
     # Step 4: add r to S of that arm, and 1 - r to F of that arm.
@@ -182,10 +182,10 @@ with all of its results.
 For each block, draw random numbers and run the experiments in exactly this order:
 
 1. Choose the arm of every well, for well `w = 1, 2, ..., wells` in order. For each
-   well, draw one sample from the posterior of every arm, in arm order,
+   well, draw one random number from the posterior of every arm, in arm order,
    `p[a] = rand(rng, Beta(α[a] + S[a], β[a] + F[a]))`, and choose `argmax(p)`. Every
    well uses the counts `S` and `F` from the start of the block. Each well gets its own
-   samples, so two wells can get different arms.
+   random numbers, so two wells can get different arms.
 2. Run the wells in well order: call `world` once for each well's arm.
 3. Update the counts with every result of the block.
 
@@ -201,7 +201,7 @@ same random numbers in the same order.
 - `K::Int64`: the number of arms, at least 1.
 - `plates::Int64`: the number of blocks, at least 1.
 - `wells::Int64`: the number of experiments in each block, at least 1.
-- `rng::AbstractRNG`: the random number generator for the samples from the posteriors.
+- `rng::AbstractRNG`: the random number generator for the draws from the posteriors.
 - `α::Array{Float64,1} = ones(K)` and `β::Array{Float64,1} = ones(K)`: the prior
   parameters of each arm, each positive, as in `my_thompson_sampling`.
 
@@ -236,11 +236,11 @@ function plate_thompson_sampling(world::Function, K::Int64, plates::Int64, wells
 
     # Initialize -
     # Start S and F at zero, and make vectors for the plates * wells actions and rewards.
-    # Also make p = zeros(K) for the samples, and block_arms = zeros(Int64, wells) for
-    # the arm of each well in the current block.
+    # Also make p = zeros(K) for the random numbers p[a], and
+    # block_arms = zeros(Int64, wells) for the arm of each well in the current block.
 
     # Play the blocks: for plate in 1:plates -
-    # Step 1: for each well w in 1:wells, draw one sample per arm into p, as in Step 1
+    # Step 1: for each well w in 1:wells, draw one p[a] per arm into p, as in Step 1
     #         of my_thompson_sampling, and set block_arms[w] = argmax(p). Do not change
     #         S or F here: every well uses the counts from the start of the block.
     # Step 2: only after every well has its arm, run the wells in well order: one
@@ -267,16 +267,16 @@ Estimate, for each arm, the probability that it is the best arm, given the count
 best arm is the one with the highest success probability. The estimate uses the
 posteriors `Beta(α[a] + S[a], β[a] + F[a])`.
 
-Repeat `N` rounds. In each round, draw one sample from the posterior of every arm, in
-arm order, `rand(rng, Beta(α[a] + S[a], β[a] + F[a]))`, and give the round to the arm
-with the largest sample (`argmax`, the first one on a tie). The probability that arm
-`a` is the best is the number of rounds arm `a` won, divided by `N`.
+Repeat `N` rounds. In each round, draw one random number from the posterior of every
+arm, in arm order, `rand(rng, Beta(α[a] + S[a], β[a] + F[a]))`, and give the round to
+the arm with the largest random number (`argmax`, the first one on a tie). The
+probability that arm `a` is the best is the number of rounds arm `a` won, divided by `N`.
 
 ### Arguments
 - `S::Array{Int64,1}` and `F::Array{Int64,1}`: the number of successes and failures on
   each arm, each at least 0.
 - `N::Int64`: the number of rounds, at least 1. More rounds give a more precise estimate.
-- `rng::AbstractRNG`: the random number generator for the samples.
+- `rng::AbstractRNG`: the random number generator for the draws from the posteriors.
 - `α` and `β`: the prior parameters of each arm, each positive, as in `my_thompson_sampling`.
 
 ### Returns
@@ -307,7 +307,7 @@ function probability_best(S::Array{Int64,1}, F::Array{Int64,1}, N::Int64; rng::A
 
     # Count the wins: for each of the N rounds -
     # Make wins = zeros(Int64, K) before the loop, where K = length(S). In each round,
-    # draw one sample from each arm's posterior, in arm order, as in
+    # draw one random number from each arm's posterior, in arm order, as in
     # my_thompson_sampling, and add one win to the arm with the largest sample.
 
     # Divide the wins by N and return -

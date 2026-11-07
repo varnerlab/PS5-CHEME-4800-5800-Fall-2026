@@ -145,10 +145,13 @@ world = a -> run_reaction(screen.yields, a, rng); # world(a) runs one experiment
 Before any runs, the company believes every success fraction from 0 to 1 is
 equally likely: the **prior** $\text{Beta}(1,1)$. After $S(a)$ successes and
 $F(a)$ failures with condition $a$, the company's updated belief, the **posterior**, is
-$\text{Beta}(1+S(a),1+F(a))$. Thompson sampling draws one **sample** from each
-condition's posterior, a random number between 0 and 1 that is a guess at that
-condition's true success fraction, and runs the condition with the largest
-sample.
+$\text{Beta}(1+S(a),1+F(a))$. Thompson sampling chooses each run in two steps:
+
+1. For every condition `a`, draw a random number `p[a]` from that condition's
+   posterior: `p[a] = rand(rng, Beta(1 + S[a], 1 + F[a]))`. Each `p[a]` is a
+   guess at the true success fraction of condition `a`.
+2. Run the condition with the largest `p[a]`, and add the result to that
+   condition's successes or failures.
 
 Implement in [src/Compute.jl](src/Compute.jl):
 
@@ -171,21 +174,25 @@ julia --startup-file=no --project=. testme_part_1.jl
 
 Each reaction runs for 48 h. Choosing one reaction, waiting for its result, and
 then choosing the next would take two days per experiment. So the company runs a
-24-well **reaction block** (a plate). For each well in a block, the company draws
-a new sample from every posterior, using the posteriors as they stand at the
-start of the block, and runs the condition with the largest sample in that well.
-Each well gets its own samples, so different wells can get different conditions. The
-counts update only after the whole block. A **screen** is a series of blocks run
-one after another. Every screen in PS5 has 480 experiments and starts from the
-prior, $\text{Beta}(1,1)$, for every condition, so a screen uses no results from
-any other screen.
+24-well **reaction block** (a plate). Each block has three steps:
+
+1. For each of the 24 wells, draw a new `p[a]` for every condition, and put the
+   condition with the largest `p[a]` in that well. Every well uses the counts
+   from the start of the block, but each well draws its own random numbers, so
+   different wells can get different conditions.
+2. Run the 24 reactions.
+3. When the results come back two days later, add them to the counts.
+
+A **screen** is a series of blocks run one after another. Every screen in PS5 has
+480 experiments and starts from the prior, $\text{Beta}(1,1)$, for every
+condition, so a screen uses no results from any other screen.
 
 At the end of a screen, the company picks a condition. A condition's
 **probability of being best** is the chance, given the posteriors, that its true
-success fraction is the highest of all. To estimate this probability, draw one sample from
-every posterior many times and count how often each condition has the largest
-sample. **The company's pick is the condition with the highest probability of
-being best.**
+success fraction is the highest of all. To estimate this probability, draw a
+`p[a]` for every condition many times, and count how often each condition has
+the largest `p[a]`. **The company's pick is the condition with the highest
+probability of being best.**
 
 Implement in [src/Compute.jl](src/Compute.jl):
 
@@ -193,8 +200,8 @@ Implement in [src/Compute.jl](src/Compute.jl):
    `plates` blocks of `wells` experiments each and returns the same four results
    as `my_thompson_sampling`.
 2. **`probability_best(S, F, N; rng, α, β)`:** estimates each condition's
-   probability of being best from the counts, using `N` sets of posterior
-   samples.
+   probability of being best from the counts, drawing a `p[a]` for every
+   condition `N` times.
 
 When both functions are done, run:
 

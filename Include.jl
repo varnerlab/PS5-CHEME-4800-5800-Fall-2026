@@ -18,7 +18,7 @@ shows.
 """
 module FluorinationScreen
 
-using Distributions # Beta: rand(rng, Beta(x, y)) draws one sample from a Beta distribution
+using Distributions # Beta: rand(rng, Beta(x, y)) draws one random number from a Beta distribution
 using Random        # AbstractRNG, the type of a random number generator such as MersenneTwister(5800)
 
 # Include the loader and the simulator first, because your functions use them -

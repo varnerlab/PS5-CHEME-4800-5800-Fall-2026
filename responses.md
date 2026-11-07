@@ -17,9 +17,9 @@ each question, so that the checker can find your answer.
 
 2. **Why do 24-well blocks cost so little?** In `plate-sizes.csv`, compare
    `mean_successes` for blocks of 1, 24, and 480 wells and for the equal split.
-   In a block, every well samples from the posteriors as they stand at the start
-   of the block. Use this fact to explain why one 480-well block does no better
-   than the equal split, but 24-well blocks do about as well as 1-well blocks.
+   In a block, every well uses the counts from the start of the block. Use this
+   fact to explain why one 480-well block does no better than the equal split,
+   but 24-well blocks do about as well as 1-well blocks.
 
    TODO: Write your response.
 
