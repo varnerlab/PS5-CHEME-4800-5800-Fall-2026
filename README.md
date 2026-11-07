@@ -95,10 +95,6 @@ measured by fluorine-19 nuclear magnetic resonance (¹⁹F NMR) spectroscopy of 
 crude reaction mixture. The 50% cutoff for a success is our choice, not the
 paper's.
 
-PS5 uses the paper's yields to simulate the company's experiments. For each
-experiment, the simulator draws one of the 37 alcohols at random and looks up
-that alcohol's measured yield under the chosen condition.
-
 Calling `screen = load_screen()` ([src/Data.jl](src/Data.jl)) loads the paper's
 data into `screen`, which has these fields:
 
@@ -125,10 +121,13 @@ The **true success fraction** of condition $a$, written $\theta_a$, is the
 fraction of the 37 alcohols that condition $a$ fluorinates in at least 50%
 yield. For example, condition 1 (3-Cl/DBU) gives at least 50% yield on 4 of the
 37 alcohols, so the true success fraction of condition 1 is 4/37, about 0.11.
+The **best condition** is the condition with the highest true success fraction.
 
-The simulator is the function `run_reaction(yields, a, rng)`
-([src/Lab.jl](src/Lab.jl)). For condition `a`, `run_reaction` draws the alcohol with
-`i = rand(rng, 1:37)` and returns `1` if `yields[i, a] >= 50.0` and `0` otherwise.
+PS5 simulates the company's experiments with the paper's yields. The
+**simulator** is the function `run_reaction(yields, a, rng)`
+([src/Lab.jl](src/Lab.jl)). For condition `a`, `run_reaction` draws one of the 37
+alcohols at random, `i = rand(rng, 1:37)`, and returns `1` if
+`yields[i, a] >= 50.0` and `0` otherwise.
 
 Your two Thompson sampling functions, `my_thompson_sampling` and
 `plate_thompson_sampling`, never see the yield table. Instead, both functions
@@ -178,8 +177,10 @@ block every two days. In a block, the company draws a new sample from every
 posterior for each well, using the posteriors as they stand at the start of the
 block, and runs the condition with the largest sample in that well. Each well
 gets its own samples, so different wells can get different conditions. The
-counts update only after the whole block. A **screen** is a
-series of blocks run one after another.
+counts update only after the whole block. A **screen** is a series of blocks run
+one after another. Every screen in PS5 has 480 experiments and starts from the
+prior, $\text{Beta}(1,1)$, for every condition, so a screen uses no results from
+any other screen.
 
 At the end of a screen, the company picks a condition. A condition's
 **probability of being best** is the chance, given the posteriors, that its true
@@ -207,42 +208,32 @@ julia --startup-file=no --project=. runscreen.jl
 ## The three studies
 
 The script `runscreen.jl` uses your four functions and the simulator to run
-three studies. It prints the picks and writes the reports to the `outputs/`
-directory. The three questions in [responses.md](responses.md) use these
-reports, one study per question. All three studies use these terms:
+three studies, one for each question in [responses.md](responses.md):
 
-- **Experiment**, or run: one well. The simulator draws one of the 37 alcohols
-  at random, and the reward is 1 if the well's condition gives at least 50%
-  yield on that alcohol, and 0 if not.
-- **Reaction block**: a set of wells whose conditions are all chosen at the
-  start and whose results all arrive 2 days (48 h) later.
-- **Screen**: a series of blocks with 480 experiments in all, run by Thompson
-  sampling. A screen starts from the prior, $\text{Beta}(1,1)$, for every
-  condition, and it uses no results from any other screen. At the end,
-  `probability_best` gives each condition's probability of being best, and the
-  condition with the highest one is the screen's **pick**.
-- **Best condition**: the condition with the highest true success fraction. The
-  company cannot see the true success fractions. The reports show them so you
-  can judge the company's choices.
+1. **Study 1, the main screen.** The company runs one screen and makes its pick
+   the default condition for new alcohols. Question 1 asks which condition the
+   company picks and whether the pick is the best condition.
+2. **Study 2, block size.** We'll repeat the main screen with smaller and larger
+   reaction blocks. Question 2 asks what larger blocks save in days and what they
+   cost in successes.
+3. **Study 3, the PBSF ban.** Suppose the company bans PBSF after the main
+   screen. Question 3 asks which PBSF-free condition the company should use
+   instead, and how many more alcohols would fail without PBSF.
 
-| Study | Conditions | Screens | Wells per block | Reports | Question |
-|---|---|---|---|---|---|
-| 1. Main screen | All 20 | 1 | 24 | `screen-summary.csv`, `posteriors.png` | 1 |
-| 2. Block size | All 20 | 100 for each block size | 1, 6, 24, 96, or 480 | `plate-sizes.csv` | 2 |
-| 3. PBSF ban | The 16 without PBSF | 1 new screen, plus the counts from study 1 | 24 | `pbsf-ban.csv` | 3 |
-
-One more report, `conditions.csv`, comes from the yield table, not from a
-screen. The file has one row per condition, with these columns: `condition`,
+The script prints the picks and writes the reports for each study to the
+`outputs/` directory. The reports list each condition's true success fraction,
+so that you can judge the company's picks. One more report, `conditions.csv`,
+comes from the yield table, not from a screen. The file has one row per condition, with these columns: `condition`,
 `sulfonyl_fluoride`, and `base`; `alcohols_at_or_above_cutoff`, the number of the
 37 alcohols that the condition fluorinates in at least 50% yield; `alcohols`,
 which is 37; and `true_success_fraction`.
 
 ### Study 1: the main screen
 
-Study 1 is the screen the company runs: one screen on all 20 conditions, as 20
-blocks of 24 wells, for 480 experiments over 40 days. After the last block,
-`probability_best` uses 10,000 sets of samples, and the pick becomes the
-company's default condition for new alcohols. Reports:
+The main screen runs all 20 conditions as 20 blocks of 24 wells, for 480
+experiments over 40 days. After the last block, the script calls
+`probability_best` with 10,000 sets of samples to find the company's pick.
+Reports:
 
 - `screen-summary.csv`: one row per condition, with these columns: `experiments`
   (the number of wells that used the condition), `successes`, `failures`,
@@ -257,7 +248,7 @@ company's default condition for new alcohols. Reports:
 
 A larger block finishes a screen in fewer days, but the posteriors update less
 often. To measure this trade-off, the script runs screens on all 20 conditions
-with five block sizes. Every screen has 480 experiments:
+with five block sizes:
 
 | Wells per block | Blocks | Days | Function |
 |---|---|---|---|
@@ -283,15 +274,14 @@ success fractions, instead of simulating the equal split. Report:
   `mean_successes`, the mean number of successes in a screen of 480
   experiments; `pick_is_best`, the fraction of screens whose pick is the best
   condition; and `pick_in_top_two`, the fraction whose pick is the best or the
-  second-best condition. Each Thompson sampling row averages its 100 screens.
-  The equal-split row fills in only `mean_successes`.
+  second-best condition. The equal-split row fills in only `mean_successes`.
 
 ### Study 3: the PBSF ban
 
-Suppose that after the main screen the company bans PBSF. When PBSF fluorinates
-an alcohol, the reaction releases the anion of perfluorobutane sulfonic acid (PFBS), which
-the European Union lists as a substance of very high concern; question 3 gives
-the details. Without PBSF, 16 conditions remain: columns 1–16, which use 3-Cl,
+The company would ban PBSF because, when PBSF fluorinates an alcohol, the
+reaction releases the anion of perfluorobutane sulfonic acid (PFBS), which the
+European Union lists as a substance of very high concern; question 3 gives the
+details. Without PBSF, 16 conditions remain: columns 1–16, which use 3-Cl,
 PyFluor, 3-CF3, or 3-NO2. The script looks for the best of these 16 in two ways:
 
 1. **From the main screen's counts.** The script keeps the main screen's counts for the
@@ -299,9 +289,9 @@ PyFluor, 3-CF3, or 3-NO2. The script looks for the best of these 16 in two ways:
    `probability_best` on the 16 (10,000 sets of samples). This step takes no new
    experiments.
 2. **From a new screen.** The script runs a new screen on the 16 PBSF-free conditions
-   only: 20 blocks of 24 wells, 480 experiments over 40 days. Like every screen,
-   the new screen starts again from the prior. The new screen's pick is the condition with the highest
-   probability of being best among the 16 (10,000 sets of samples).
+   only: 20 blocks of 24 wells, 480 experiments over 40 days. The new screen's
+   pick is the condition with the highest probability of being best among the 16
+   (10,000 sets of samples).
 
 Report:
 
