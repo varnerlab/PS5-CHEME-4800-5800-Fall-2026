@@ -133,10 +133,13 @@ Part 1.
 
 The simulator is the function `run_reaction(yields, a, rng)`
 ([src/Lab.jl](src/Lab.jl)). For condition `a`, `run_reaction` draws the alcohol with
-`i = rand(rng, 1:37)` and returns `1` if `yields[i, a] >= 50.0` and `0` otherwise. As in the L10d lab, the
-bandit functions never see the table. They take the **world**, a function that
-runs one experiment: `world(a)` returns the reward of one run with condition
-`a`. The supplied code makes the world in one line:
+`i = rand(rng, 1:37)` and returns `1` if `yields[i, a] >= 50.0` and `0` otherwise.
+
+Your two Thompson sampling functions, `my_thompson_sampling` and
+`plate_thompson_sampling`, never see the yield table. Instead, both functions
+take the **world** as the first argument. The world is a function that runs one
+experiment: `world(a)` returns the reward of one run with condition `a`. The
+supplied code makes the world in one line:
 
 ```julia
 rng = MersenneTwister(5825); # one random number generator for the agent and the world
@@ -312,7 +315,7 @@ PyFluor, 3-CF3, or 3-NO2. The script looks for the best of these 16 in two ways:
 
 1. **From the main screen's counts.** The script keeps the main screen's counts for the
    16 PBSF-free conditions, drops the 4 PBSF conditions, and runs
-   `probability_best` on the 16 (10,000 sets of samples). This takes no new
+   `probability_best` on the 16 (10,000 sets of samples). This step takes no new
    experiments.
 2. **From a new screen.** The script runs a new screen on the 16 PBSF-free conditions
    only: 20 blocks of 24 wells, 480 experiments over 40 days. Like every screen,
