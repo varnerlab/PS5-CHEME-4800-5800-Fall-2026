@@ -23,9 +23,11 @@ Code and data: [doyle-lab-ucla/bandit-optimization](https://github.com/doyle-lab
 ## The reactions
 
 Each reaction replaces the alcohol's hydroxyl –OH group with a –F (fluorine)
-group. The alcohol, a
-sulfonyl fluoride (1.1 equiv), and a base (1.5 equiv) react at 0.4 M in
-tetrahydrofuran (THF) at room temperature for 48 h. The yield is the percent of
+group. The alcohol is dissolved in tetrahydrofuran (THF) at 0.4 M. The amounts of
+sulfonyl fluoride and base are given in equivalents (equiv), the moles of reagent
+per mole of alcohol: each reaction uses 1.1 equiv of sulfonyl fluoride (0.44 M)
+and 1.5 equiv of base (0.60 M). The mixture reacts at room temperature for 48 h.
+The yield is the percent of
 the alcohol converted to the alkyl fluoride, measured by fluorine-19 nuclear
 magnetic resonance (¹⁹F NMR) spectroscopy of the crude reaction mixture. The
 paper's authors ran all 20 conditions on 32 alcohols to train a machine learning
