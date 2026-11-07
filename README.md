@@ -169,11 +169,9 @@ julia --startup-file=no --project=. testme_part_1.jl
 
 Each reaction runs for 48 h. Choosing one reaction, waiting for its result, and
 then choosing the next would take two days per experiment. So the company runs a
-24-well **reaction block** (a plate): it chooses the condition of every well
-before any result in the block comes back, and the results arrive together, one
-block every two days. In a block, the company draws a new sample from every
-posterior for each well, using the posteriors as they stand at the start of the
-block, and runs the condition with the largest sample in that well. Each well
+24-well **reaction block** (a plate). In a block, the company draws a new sample
+from every posterior for each well, using the posteriors as they stand at the
+start of the block, and runs the condition with the largest sample in that well. Each well
 gets its own samples, so different wells can get different conditions. The
 counts update only after the whole block. A **screen** is a series of blocks run
 one after another. Every screen in PS5 has 480 experiments and starts from the
