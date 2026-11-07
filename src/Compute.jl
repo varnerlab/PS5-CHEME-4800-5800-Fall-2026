@@ -11,7 +11,7 @@
 # experiment and sees only the rewards, never the yield table.
 # The world is a function of the condition: world(a) runs one experiment with
 # condition a and returns its reward, 1 for a success or 0 for a failure. The
-# supplied code makes it from the yield table, as the L10d lab did with bernoulli_world:
+# supplied code makes the world from the yield table, as the L10d lab did with bernoulli_world:
 #     world = a -> run_reaction(yields, a, rng);
 # Draw every random number from rng, in the order each docstring gives, so that
 # the same seed always gives the same game.
@@ -135,7 +135,7 @@ screen = load_screen();
 rng = MersenneTwister(5800); # one random number generator for the agent and the world
 world = a -> run_reaction(screen.yields, a, rng); # the reward of one experiment with condition a
 result = my_thompson_sampling(world, 20, 480; rng = rng);
-result.S .+ result.F # the number of experiments with each condition
+result.S + result.F # the number of experiments with each condition
 ```
 """
 function my_thompson_sampling(world::Function, K::Int64, T::Int64; rng::AbstractRNG,
@@ -306,9 +306,9 @@ function probability_best(S::Array{Int64,1}, F::Array{Int64,1}, N::Int64; rng::A
     # wrong length or an entry that is not positive.
 
     # Count the wins: for each of the N rounds -
-    # Make wins = zeros(Int64, K) before the loop, where K = length(S). In each round,
-    # draw one random number from each arm's posterior, in arm order, as in
-    # my_thompson_sampling, and add one win to the arm with the largest sample.
+    # Before the loop, set K = length(S), and make wins = zeros(Int64, K) and
+    # p = zeros(K). In each round, draw one p[a] per arm into p, as in Step 1 of
+    # my_thompson_sampling, and add one win to the arm argmax(p).
 
     # Divide the wins by N and return -
     # Make a vector of K zeros, and set entry a to wins[a] / N.

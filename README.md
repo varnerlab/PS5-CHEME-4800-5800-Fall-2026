@@ -34,7 +34,7 @@ We'll explore this question using a **binary Bernoulli bandit**:
 - The reward is `1` for a success and `0` for a failure.
 - Each arm's success probability is the fraction of alcohols that its condition
   fluorinates in at least 50% yield. The company does not know these
-  probabilities; it learns them from the rewards. We'll model these success probabilities using beta distributions, which are updated each time new results arrive.
+  probabilities; it learns them from the rewards. We'll model these success probabilities using Beta distributions, which are updated each time new results arrive.
 
 You will use Thompson sampling to choose the arm for each run, with the runs
 grouped in 24-well reaction blocks (24 reactions run at once, as in the company's lab), and use the results to pick the default
@@ -223,7 +223,7 @@ picks, and writes these files to the `outputs/` directory:
 | `conditions.csv` | Each condition's true success fraction, computed from the yield table. |
 | `screen-summary.csv` | The main screen: each condition's experiments, successes, failures, posterior mean, probability of being best, and true success fraction. |
 | `posteriors.png` | The posteriors after the main screen, for the six conditions with the most experiments and for the condition with the lowest true success fraction. A dashed line marks each condition's true success fraction. |
-| `plate-sizes.csv` | The main screen repeated with blocks of 1, 6, 24, 96, and 480 wells, 100 screens for each block size: the days a screen takes, the mean number of successes, and how often the pick is the best condition or one of the two best. The last row is the **equal split**, which runs every condition on 24 alcohols, with no learning. |
+| `plate-sizes.csv` | For each block size (1, 6, 24, 96, and 480 wells), 100 screens of 480 experiments on all 20 conditions: the days a screen takes, the mean number of successes, and how often the pick is the best condition or one of the two best. The last row is the **equal split**, which runs each condition 24 times, with no learning. |
 | `pbsf-ban.csv` | The 16 conditions without PBSF: each condition's experiments, posterior mean, and probability of being best among the 16, from the main screen and from a **new screen** of 480 experiments on only these 16 conditions, and the condition's true success fraction. |
 
 Use these files to answer the three questions in [responses.md](responses.md).
