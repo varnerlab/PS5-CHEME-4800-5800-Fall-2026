@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Supplied simulator | Run one reaction by replaying the published screen.
+# Supplied simulator | Run one reaction by looking up the paper's yields.
 # ----------------------------------------------------------------------------
 
 """
@@ -8,11 +8,11 @@
 Run one experiment with condition `a` and return its reward: `1` for a success and
 `0` for a failure. This function is the world: the agent sees only the reward.
 
-The function stands in for the lab. It picks one alcohol (row of `yields`) at random,
-as the next alcohol in the queue, and looks up the yield the published screen measured
-for that alcohol under condition `a`. Any alcohol can come up again. The run is a
-success if that yield is at least `cutoff` percent (`50.0` by default; a yield of
-exactly 50% counts as a success).
+The function stands in for the company's lab. It picks one alcohol (row of `yields`)
+at random, as the next alcohol in the company's order queue, and looks up the yield
+the paper measured for that alcohol under condition `a`. Any alcohol can come up
+again. The run is a success if that yield is at least `cutoff` percent (`50.0` by
+default; a yield of exactly 50% counts as a success).
 
 ### Arguments
 - `yields::Array{Float64,2}`: the yield table, one row per alcohol and one column per

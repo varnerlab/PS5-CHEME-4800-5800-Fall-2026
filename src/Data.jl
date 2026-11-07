@@ -1,8 +1,8 @@
 # ----------------------------------------------------------------------------
-# Supplied loader | Read the deoxyfluorination screen from data/.
+# Supplied loader | Read the paper's deoxyfluorination yields from data/.
 # ----------------------------------------------------------------------------
 
-const DATA_FILE = "deoxyfluorination.csv"; # the published screen: 37 alcohols × 20 conditions
+const DATA_FILE = "deoxyfluorination.csv"; # the paper's yields: 37 alcohols × 20 conditions
 const SULFONYL_FLUORIDES = ["3-Cl", "PyFluor", "3-CF3", "3-NO2", "PBSF"]; # least to most reactive
 const BASES = ["DBU", "MTBD", "BTMG", "BTPP"]; # least to most bulky
 const NUMBER_OF_ALCOHOLS = 37;
@@ -10,7 +10,7 @@ const NUMBER_OF_ALCOHOLS = 37;
 """
     load_screen(directory::String = <the assignment's data folder>) -> NamedTuple
 
-Read the yields of the deoxyfluorination screen: 37 alcohols, each run under 20
+Read the paper's deoxyfluorination yields: 37 alcohols, each run under 20
 conditions. A condition is one sulfonyl fluoride paired with one base.
 
 ### Returns

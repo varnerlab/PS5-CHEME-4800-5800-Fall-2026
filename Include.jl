@@ -3,7 +3,7 @@
     FluorinationScreen
 
 Load the data loader, the simulator, and the four student functions. The loader,
-`load_screen()`, returns the yield table of the deoxyfluorination screen. The
+`load_screen()`, returns the paper's deoxyfluorination yield table. The
 simulator, `run_reaction(...)`, runs one experiment. The student functions and the
 reference solution use the same loader and simulator.
 Pass `--solution` after a script's filename to load `solution/src/Compute.jl`

@@ -2,13 +2,13 @@
 
 Answer all three questions. Each question has two parts, (a) and (b). Replace
 the line `TODO: Write your response.` with your answers, labeled (a) and (b). A
-short paragraph per part is enough. Give every number you use, copied from the
-files in `outputs/`. The README section [The three
+short paragraph per part is enough. Copy every number you use from the files in
+`outputs/`. The README section [The three
 studies](README.md#the-three-studies) describes how each file is made; question
 1 uses study 1, question 2 uses study 2, and question 3 uses study 3. Keep the
 blank line after each question; the checker uses it to find your answer.
 
-1. **What did the main screen learn?**
+1. **What did the company learn from the main screen?**
    Use `screen-summary.csv` and `posteriors.png` from study 1. Both describe the
    main screen: 480 experiments on all 20 conditions, run as 20 blocks of 24
    wells. A condition's true success fraction (column `true_success_fraction`) is
@@ -21,8 +21,9 @@ blank line after each question; the checker uses it to find your answer.
      condition? If not, name the best condition and give its true success
      fraction.
    - **(b)** Find the two conditions with the highest true success fractions;
-     they differ by one alcohol in 37. Suppose the company made the second of the
-     two its default instead of the best. On average, how many more of every 100
+     the best condition fluorinates one more of the 37 alcohols in at least 50%
+     yield than the second-best. Suppose the company made the second-best
+     condition its default instead of the best. On average, how many more of every 100
      new alcohols would fail (give less than 50% yield)? Then, for each of the
      two conditions, report its number of experiments and its probability of
      being best, and find its posterior in `posteriors.png`. Use the experiment
@@ -38,22 +39,22 @@ blank line after each question; the checker uses it to find your answer.
    condition in all 480 experiments. In `plate-sizes.csv`, each row with
    `strategy` equal to `thompson` averages 100 Thompson sampling screens of 480
    experiments, all with the block size in `wells_per_block`; each block takes 2
-   days. The row with `strategy` equal to `equal_split` runs every condition on
-   exactly 24 alcohols; it is computed from the true success fractions, not
-   simulated.
+   days. The row with `strategy` equal to `equal_split` is the baseline that runs
+   every condition on exactly 24 alcohols; its numbers are computed from the true
+   success fractions, not simulated.
    - **(a)** For blocks of 1, 24, 96, and 480 wells, report the days the screen
      takes (column `days`) and its mean gap loss (column `mean_gap_loss`). Also
      report the gap loss of the equal split.
-   - **(b)** In a block, each well draws its own samples from the posteriors as
-     they stand at the start of the block, and the posteriors update only after
-     the whole block. Use this rule to explain two results: (i) one 480-well
-     block has about the same gap loss as the equal split; (ii) 24-well blocks
-     have about the same gap loss as 1-well blocks, which run one reaction at a
-     time.
+   - **(b)** In a block, the company draws a new sample from every posterior for
+     each well, using the posteriors as they stand at the start of the block, and
+     the posteriors update only after the whole block. Use these facts to explain
+     two results: (i) one 480-well block has about the same gap loss as the equal
+     split; (ii) 24-well blocks have about the same gap loss as 1-well blocks,
+     which run one reaction at a time.
 
    TODO: Write your response.
 
-3. **PBSF is banned.**
+3. **What would a PBSF ban cost?**
    When PBSF (perfluorobutanesulfonyl fluoride) converts an alcohol to its
    fluoride, it releases perfluorobutanesulfonate, the anion of PFBS
    (perfluorobutane sulfonic acid). In January 2020, the European Union added

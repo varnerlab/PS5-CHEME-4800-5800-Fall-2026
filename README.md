@@ -1,11 +1,11 @@
 # Problem Set 5 (PS5): One fluorination condition for many alcohols
 
-A chemistry company works as a contract research organization (CRO): it makes
+A chemical company works as a contract research organization (CRO): it makes
 compounds to order for drug discovery clients. Many orders are alkyl fluorides,
-which are high-value targets in drug development. Each order names an alcohol
-and asks for a small amount of its fluoride to test. The company makes each one
-by **deoxyfluorination**: this reaction replaces the alcohol's –OH group with a
-–F (fluorine) group. It uses sulfonyl fluorides, which are inexpensive and,
+which are high-value targets in drug development. Each order specifies a starting alcohol
+and asks the CRO to synthesize a small amount of its fluoride to test. The company makes each fluoride
+by **deoxyfluorination**: this reaction replaces the alcohol's hydroxyl –OH group with a
+–F (fluorine) group under basic conditions. It uses sulfonyl fluorides as the fluorinating reagents, which are inexpensive and,
 unlike the traditional reagent diethylaminosulfur trifluoride (DAST), thermally
 stable.
 
@@ -14,35 +14,33 @@ Problem Set 5 (PS5) is due: __11:59 PM ET, Saturday, November 21, 2026__. Releas
 ## The question
 
 Clients send the company a steady stream of orders, each for the fluoride of a
-new alcohol. The company can run each alcohol under any of 20 reaction
-**conditions**; a condition is one sulfonyl fluoride paired with one base. No
-condition works on every alcohol, and the company does not know which condition
-works on the most. It wants one default condition for new alcohols, so it asks:
+new alcohol. The company can run each alcohol conversion under any of 20 reaction
+**conditions**; a condition is one sulfonyl fluoride paired with one base. However, no single
+condition seems to work for every alcohol. The company wants one default condition for new alcohols, so it asks:
 
 > **Which of the 20 conditions fluorinates the most alcohols, and how can the
-> company find it without wasting many runs on poor conditions?**
+> company find that condition without wasting many runs on poor conditions?**
 
-The company finds out by running reactions. Each **experiment**, or run,
-fluorinates the next alcohol in the queue with a condition the company chooses;
+Each **experiment**, or run, fluorinates the next alcohol in the queue with a condition the company chooses;
 the company cannot choose which alcohol comes next. A run is a **success** if
-the yield is at least 50%, which gives enough product to fill the order.
-Otherwise it is a **failure**, and the run is wasted. The company wants as many
+the yield of the deoxyfluorination reaction is at least 50%, which gives enough product to fill the order.
+Otherwise the run is a **failure**. The company wants as many
 successes as possible while it learns which condition is best.
 
-You will answer the question with a **binary Bernoulli bandit**, as in Week 10:
+We'll explore this question using a **binary Bernoulli bandit**:
 
 - Each of the 20 conditions is an arm.
-- Each run pulls one arm: it uses that condition on the next alcohol.
-- The reward is 1 for a success and 0 for a failure.
+- Each run pulls one arm: it uses that condition on the next alcohol in the company's order queue.
+- The reward is `1` for a success and `0` for a failure.
 - Each arm's success probability is the fraction of alcohols that its condition
   fluorinates in at least 50% yield. The company does not know these
-  probabilities; it learns them from the rewards.
+  probabilities; it learns them from the rewards. We'll model these success probabilities using beta distributions, which are updated each time new results arrive.
 
-You will write Thompson sampling to choose the arm for each run, run it in
-24-well reaction blocks as the lab does, and use the results to pick the default
+You will use Thompson sampling to choose the arm for each run, run it in
+24-well reaction blocks (24 reactions run at once, as in the company's lab), and use the results to pick the default
 condition. With the same tools, you will also measure what larger reaction
-blocks cost, and what a ban on one sulfonyl fluoride, perfluorobutanesulfonyl
-fluoride (PBSF), costs.
+blocks cost, and what a potential ban on one of the sulfonyl fluoride compounds, perfluorobutanesulfonyl
+fluoride (PBSF), could cost the company.
 
 ## Setup
 
@@ -57,15 +55,15 @@ The first command installs the packages. The second runs the
 48 tests, which fail until you finish Parts 1 and 2.
 
 Write your code in [src/Compute.jl](src/Compute.jl) and your answers in
-[responses.md](responses.md). Edit no other file, with one exception: if you put
-helper functions in a new file in `src/`, add it to [Include.jl](Include.jl),
-which shows an example.
-
-The data loader, `load_screen`, and the simulator, `run_reaction`, are already
-written in [src/Data.jl](src/Data.jl) and [src/Lab.jl](src/Lab.jl). Do not
-change those files.
+[responses.md](responses.md). Do not edit any other files, with one exception: if you put
+helper functions in a new file in `src/`, add it to [Include.jl](Include.jl), so that `Compute.jl` can use it.
 
 ## Materials and Methods
+
+The reaction data come from a published paper (Nielsen et al., 2018; see
+[Sources](#sources)). Its authors ran all 20 conditions on 37 structurally
+different alcohols, from simple primary, secondary, and tertiary alcohols to
+drugs such as metronidazole and abiraterone: 740 reactions in all.
 
 Every reaction is run the same way: the alcohol, a sulfonyl fluoride (1.1
 equiv), and a base (1.5 equiv) at 0.4 M in tetrahydrofuran (THF) at room
@@ -94,17 +92,15 @@ measured by fluorine-19 nuclear magnetic resonance (¹⁹F NMR) spectroscopy of 
 crude reaction mixture. The 50% cutoff for a success is our choice, not the
 paper's.
 
-The yields come from a published screen (Nielsen et al., 2018; see
-[Sources](#sources)) that ran all 20 conditions on 37 structurally different
-alcohols, from simple primary, secondary, and tertiary alcohols to drugs such as
-metronidazole and abiraterone: 740 reactions. In PS5, the published yields stand
-in for the lab. In a real campaign, each experiment would use a new alcohol, but
-we have yields for only these 37. So the simulator draws one of the 37 at random
-for each experiment, with repeats allowed, and looks up its measured yield under
-the chosen condition. A repeated alcohol gives the same yield: the simulation
-has no run-to-run noise.
+In PS5, the paper's yields stand in for the company's lab. In the lab, each
+experiment would use a new alcohol, but we have yields for only these 37. So PS5
+simulates each experiment: the simulator draws one of the 37 alcohols at random,
+with repeats allowed, and looks up that alcohol's measured yield under the
+chosen condition. A repeated alcohol gives the same yield: the simulation has no
+run-to-run noise.
 
-Calling `screen = load_screen()` ([src/Data.jl](src/Data.jl)) returns:
+Calling `screen = load_screen()` ([src/Data.jl](src/Data.jl)) loads the paper's
+data into `screen`, which has these fields:
 
 | Field | Meaning |
 |---|---|
@@ -173,9 +169,11 @@ Each reaction runs for 48 h. Choosing one reaction, waiting for its result, and
 then choosing the next would take two days per experiment. So the company runs a
 24-well **reaction block** (a plate): it chooses the condition of every well
 before any result in the block comes back, and the results arrive together, one
-block every two days. In a block, each well draws its own samples from the
-posteriors as they stand at the start of the block, so different wells can get
-different conditions. The counts update after the whole block. A **screen** is a
+block every two days. In a block, the company draws a new sample from every
+posterior for each well, using the posteriors as they stand at the start of the
+block, and runs the condition with the largest sample in that well. Each well
+gets its own samples, so different wells can get different conditions. The
+counts update only after the whole block. A **screen** is a
 series of blocks run one after another.
 
 At the end of a screen, the company picks a condition. A condition's
@@ -293,8 +291,10 @@ than simulated. Reports:
 
 ### Study 3: the PBSF ban
 
-Suppose that after the main screen the company bans PBSF; question 3
-gives the reason. That leaves the 16 conditions in columns 1–16, which use 3-Cl,
+Suppose that after the main screen the company bans PBSF. When PBSF fluorinates
+an alcohol, it releases the anion of perfluorobutane sulfonic acid (PFBS), which
+the European Union lists as a substance of very high concern; question 3 gives
+the details. Without PBSF, 16 conditions remain: columns 1–16, which use 3-Cl,
 PyFluor, 3-CF3, or 3-NO2. The script looks for the best of these 16 in two ways:
 
 1. **From the main screen's counts.** It keeps the main screen's counts for the
