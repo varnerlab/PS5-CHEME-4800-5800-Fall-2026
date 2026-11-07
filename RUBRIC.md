@@ -22,5 +22,5 @@ To grade, the instructor copies your `src/Compute.jl`, any helper files, and
 `Include.jl` into a clean copy of the assignment, reruns the tests, and then
 reads your `responses.md`.
 
-The policies in [README.md](README.md) also apply: no initial submission, or
-copying the reference solution, scores `0`.
+The policies in [README.md](README.md) also apply: you score `0` if you make no
+initial submission or if you copy the reference solution.

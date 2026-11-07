@@ -1,10 +1,10 @@
 # Run: julia --startup-file=no --project=. testme_part_1.jl
-# Add --solution to test solution/src/Compute.jl without replacing student code.
+# The flag --solution is for the instructor: it tests solution/src/Compute.jl instead of yours.
 # Each labeled case checks one requirement of success_fractions or my_thompson_sampling.
 
 
 # ----------------------------------------------------------------------------
-# Setup | Load the selected implementation and test helpers
+# Setup | Load your functions and the test helpers
 # ----------------------------------------------------------------------------
 
 using Test;   # record one scored assertion per labeled case
@@ -16,7 +16,7 @@ Base.include(@__MODULE__, joinpath(@__DIR__, "test_support.jl"));
 
 using .PS5Checks; # small inputs and stored results
 
-# Each case contributes one scored test, including cases whose implementation raises an error.
+# Each case counts as one test, even when your function throws an error in it.
 toy = toy_table();
 screen = load_screen();
 

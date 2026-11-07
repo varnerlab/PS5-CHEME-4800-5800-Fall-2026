@@ -109,7 +109,7 @@ assert (reference / "outputs/plate-sizes.csv").read_bytes() == plate_sizes
 starter = stage()
 for script in ("check_submission.jl", "testme_part_1.jl", "runscreen.jl"):
     output = run(starter, "missing-solution-" + script, 1, script=script, args=("--solution",))
-    assert "--solution requires" in output
+    assert "--solution flag needs the instructor's solution folder" in output
 assert not (starter / "outputs").exists() and not (starter / "MANIFEST.txt").exists()
 output = run(starter, "starter-checker", 1)
 assert "READY TO PACKAGE" not in output

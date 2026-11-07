@@ -6,7 +6,8 @@
     run_reaction(yields::Array{Float64,2}, a::Int64, rng::AbstractRNG; cutoff::Float64 = 50.0) -> Int64
 
 Run one experiment with condition `a` and return its reward: `1` for a success and
-`0` for a failure. This function is the world: the agent sees only the reward.
+`0` for a failure. The bandit functions call it through the world, `world(a)` (see the
+example below), so they see only the reward.
 
 The function stands in for the company's lab. It picks one alcohol (row of `yields`)
 at random, as the next alcohol in the company's order queue, and looks up the yield
@@ -30,7 +31,7 @@ Throws an `ArgumentError` if `a` is not a column of `yields`.
 screen = load_screen();
 rng = MersenneTwister(5800);
 world = a -> run_reaction(screen.yields, a, rng); # the world for the bandit functions
-reward = world(19); # run PBSF/BTMG on one alcohol from the queue
+reward = world(19); # run PBSF/BTMG on the next alcohol in the order queue
 ```
 """
 function run_reaction(yields::Array{Float64,2}, a::Int64, rng::AbstractRNG; cutoff::Float64 = 50.0)::Int64
@@ -40,7 +41,7 @@ function run_reaction(yields::Array{Float64,2}, a::Int64, rng::AbstractRNG; cuto
         throw(ArgumentError("condition $a is not a column of the yield table (1 to $(size(yields, 2)))"));
     end
 
-    # Pick the next alcohol in the queue at random; any alcohol can come up again -
+    # Pick the next alcohol in the order queue at random; any alcohol can come up again -
     i = rand(rng, 1:size(yields, 1));
 
     # A success if the measured yield reaches the cutoff -

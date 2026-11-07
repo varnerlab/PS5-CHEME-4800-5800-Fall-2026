@@ -1,21 +1,26 @@
-# Check required work, generate outputs, and write a manifest.
-# Usage: julia --startup-file=no --project=. check_submission.jl
-# Add --solution to check local reference code and responses; write its outputs
-# and manifest under solution/. Student source files and responses stay unchanged.
-# Exit with code 0 when the tests, output generation, and response checks pass;
-# otherwise exit with code 1. A score still requires instructor review.
-using Test;  # distinguish failed assertions from source-loading errors
+# Check your work: run the 48 tests, make the reports, check responses.md, and
+# write MANIFEST.txt.
+# Run: julia --startup-file=no --project=. check_submission.jl
+# The flag --solution is for the instructor: it checks the reference code and
+# responses in solution/ and writes the reports and manifest there. Your files stay
+# unchanged.
+# The script exits with code 0 if the tests, the reports, and the response check all
+# pass, and with code 1 otherwise. Passing does not set your score; the instructor
+# grades your answers.
+using Test;  # tell failed tests apart from errors that stop a test script
 using SHA;   # fingerprint submitted source files and responses
 using Dates; # timestamp the submission manifest
 
-# Choose the files being checked before loading any suite or writing outputs -
+# Choose which files to check before running any tests or writing any reports -
 const SOLUTION_MODE = "--solution" in ARGS;
 const CHECK_ROOT = SOLUTION_MODE ? joinpath(@__DIR__, "solution") : @__DIR__;
 const RESPONSE_PATH = joinpath(CHECK_ROOT, "responses.md");
 const COMPUTE_PATH = joinpath(CHECK_ROOT, "src", "Compute.jl");
 if SOLUTION_MODE
     for path in (COMPUTE_PATH, RESPONSE_PATH)
-        isfile(path) || error("--solution requires the local instructor file: $path");
+        if !isfile(path)
+            error("Cannot find $path. The --solution flag needs the instructor's solution folder.");
+        end
     end
     println("Checking the instructor reference solution; outputs and manifest go under solution/.");
 end
@@ -23,10 +28,11 @@ end
 """
     rootcause(caught)
 
-Inspect a caught exception and return the first exception that is not a
-`LoadError`, unwrapping nested file-include errors. Return `caught` itself if
-it has no wrapper. Leave the exception unchanged. The checker uses this result
-to distinguish failed test assertions from errors that prevented a suite running.
+Return the error underneath a caught exception. Julia wraps an error in a
+`LoadError` each time it passes through an `include`, so this function removes
+those wrappers one at a time. If `caught` is not a `LoadError`, return it as is.
+The checker uses the result to tell failed tests apart from errors that stopped a
+test script from running.
 """
 function rootcause(caught)
     while caught isa LoadError
@@ -38,13 +44,13 @@ end
 """
     discussion_issues(path; questions=1:3) -> Vector{String}
 
-Read the response file at `path` and return messages for missing or duplicate
-questions, empty answers, and remaining TODO/TBD placeholders for `questions`.
-Expect numbered, bold question prompts followed by answer paragraphs in responses.md.
-Ignore HTML comments when checking whether an answer is present.
+Read the response file at `path` and return a message for each question in
+`questions` that is missing, appears twice, has no answer, or still has a TODO or
+TBD placeholder. The file must hold numbered, bold question prompts, each followed
+by a blank line and then the answer. HTML comments do not count as an answer.
 
-Return an empty vector if no issues are detected; this does not grade correctness.
-A missing or unreadable file returns a warning message. The file is unchanged.
+Return an empty vector if there are no problems; this check does not grade your
+answers. A missing or unreadable file gives one message. The file is not changed.
 """
 function discussion_issues(path; questions=1:3)
     # Check that the file is there -
@@ -98,7 +104,7 @@ println("PS5 submission check: Parts 1 and 2, 48 required tests, and questions 1
 statuses = Dict{String,String}();
 suites = Dict{String,Module}();
 required_suites = ("testme_part_1.jl", "testme_part_2.jl");
-# Isolate each suite so loading the same student module twice does not replace it -
+# Run each test script in its own module, so loading your code twice does not replace the first copy -
 # (Module(gensym(...)) makes a new, empty module with a unique name for each test script)
 for filename in required_suites
     println("\nRunning ", filename);
@@ -131,7 +137,7 @@ for name in required_suites
 end
 
 # Remove earlier reports so outputs/ holds only results from the code just checked -
-# (instructor/validate.py checks that this list matches ScreenReports.REPORT_FILES)
+# (this list must match REPORT_FILES in src/Reporting.jl)
 for name in ("conditions.csv", "screen-summary.csv", "posteriors.png", "plate-sizes.csv",
         "gap-loss.png", "pbsf-ban.csv")
     rm(joinpath(CHECK_ROOT, "outputs", name); force=true);
@@ -161,7 +167,7 @@ files = [joinpath(@__DIR__, "Include.jl"), RESPONSE_PATH];
 for (directory, _, filenames) in walkdir(joinpath(@__DIR__, "src"))
     for name in filenames
         file_path = joinpath(directory, name);
-        # Fingerprint the implementation actually loaded, including in solution mode -
+        # Fingerprint the Compute.jl that was actually loaded (the instructor's, with --solution) -
         if file_path == joinpath(@__DIR__, "src", "Compute.jl")
             file_path = COMPUTE_PATH;
         end
@@ -180,9 +186,9 @@ for name in sort(collect(keys(statuses)))
 end
 println(io, "Outputs: ", report_status);
 if isempty(issues)
-    println(io, "Discussion: no unanswered prompts detected; instructor review required");
+    println(io, "Questions: every question has an answer; the instructor grades them");
 else
-    println(io, "Discussion: ", join(issues, "; "));
+    println(io, "Questions: ", join(issues, "; "));
 end
 println(io, "Required work: ", ready ? "checks passed; instructor review required" : "WORK NEEDS ATTENTION");
 for path in sort(files)
@@ -203,14 +209,14 @@ for name in sort(collect(keys(statuses)))
 end
 println("Outputs: ", report_status);
 for issue in issues
-    println("Discussion: ", issue);
+    println("Questions: ", issue);
 end
 if SOLUTION_MODE
     println("Status: ", ready ? "REFERENCE SOLUTION PASSED" : "REFERENCE SOLUTION NEEDS ATTENTION");
     println("Wrote solution/MANIFEST.txt; reference outputs are in solution/outputs/.");
 else
     println("Status: ", ready ? "READY TO PACKAGE; instructor review pending" : "WORK NEEDS ATTENTION");
-    println("Wrote MANIFEST.txt. Zip the assignment folder, including responses and outputs.");
+    println("Wrote MANIFEST.txt. Zip the whole folder, including MANIFEST.txt and outputs/.");
     println("Name it CHEME-4800-5800-PS5-<your netid>.zip and upload it to Canvas yourself.");
     println("Submit your current work by the initial deadline even if some tests still fail.");
 end

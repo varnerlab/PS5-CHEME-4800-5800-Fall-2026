@@ -81,7 +81,7 @@ function write_outputs(assignment, directory)
     write_posteriors(directory, screen, θ, game);
     pick = argmax(best);
 
-    # The same 480 experiments with different block sizes, averaged over 100 screens -
+    # Screens of 480 experiments with each block size, averaged over 100 screens -
     write_plate_sizes(directory, assignment, yields, θ);
 
     # The PBSF ban: what the main screen says about the 16 PBSF-free conditions, and a new screen -
@@ -94,7 +94,7 @@ function write_outputs(assignment, directory)
         end
     end
 
-    # What the main screen learned: probability of being best among the PBSF-free conditions only -
+    # What the company learned from the main screen: the probability of being best among the PBSF-free conditions only -
     first_best = assignment.probability_best(game.S[pbsf_free], game.F[pbsf_free], DRAWS_SUMMARY;
         rng = MersenneTwister(SEED + 1));
 
@@ -114,9 +114,9 @@ function write_outputs(assignment, directory)
     best_all = argmax(θ); # the column of the best condition
     best_ban = pbsf_free[argmax(θ[pbsf_free])]; # the column of the best PBSF-free condition
     println();
-    @printf("Main screen pick: %s, probability of being best %.3f, %d experiments, works on %d of %d alcohols.\n",
+    @printf("Main screen pick: %s, probability of being best %.3f, %d experiments, at least 50%% yield on %d of %d alcohols.\n",
         screen.conditions[pick], best[pick], game.S[pick] + game.F[pick], round(Int, θ[pick] * n), n);
-    @printf("PBSF-free screen pick: %s, works on %d of %d alcohols.\n",
+    @printf("PBSF-free screen pick: %s, at least 50%% yield on %d of %d alcohols.\n",
         screen.conditions[pick_free], round(Int, θ[pick_free] * n), n);
     @printf("Best condition: %s (%d of %d). Best PBSF-free condition: %s (%d of %d).\n",
         screen.conditions[best_all], round(Int, θ[best_all] * n), n,
@@ -186,7 +186,7 @@ fluorinates with a yield of at least the cutoff, its true success fraction, and 
 
 ### Arguments
 - `directory::String`: the output folder.
-- `screen::NamedTuple`: the screen from `load_screen()`.
+- `screen::NamedTuple`: the paper's data, from `load_screen()`.
 - `θ::Array{Float64,1}`: the true success fraction of each condition.
 """
 function write_conditions(directory, screen, θ)
@@ -213,7 +213,7 @@ fraction.
 
 ### Arguments
 - `directory::String`: the output folder.
-- `screen::NamedTuple`: the screen from `load_screen()`.
+- `screen::NamedTuple`: the paper's data, from `load_screen()`.
 - `θ::Array{Float64,1}`: the true success fraction of each condition.
 - `game::NamedTuple`: the main screen, from `plate_thompson_sampling`.
 - `best::Array{Float64,1}`: the probability that each condition is the best.
@@ -243,7 +243,7 @@ its true success fraction.
 
 ### Arguments
 - `directory::String`: the output folder.
-- `screen::NamedTuple`: the screen from `load_screen()`.
+- `screen::NamedTuple`: the paper's data, from `load_screen()`.
 - `θ::Array{Float64,1}`: the true success fraction of each condition.
 - `game::NamedTuple`: the main screen, from `plate_thompson_sampling`.
 """
@@ -386,13 +386,14 @@ end
 """
     write_ban(directory, screen, θ, pbsf_free, game, first_best, game_free, best_free)
 
-Write `pbsf-ban.csv`: for each PBSF-free condition, what the main screen learned about
-it (experiments, posterior mean, and probability of being best among the PBSF-free
-conditions), the same for the new PBSF-free screen, and its true success fraction.
+Write `pbsf-ban.csv`: for each PBSF-free condition, its results in the main screen
+(experiments, posterior mean, and probability of being best among the PBSF-free
+conditions), the same results from the new PBSF-free screen, and its true success
+fraction.
 
 ### Arguments
 - `directory::String`: the output folder.
-- `screen::NamedTuple`: the screen from `load_screen()`.
+- `screen::NamedTuple`: the paper's data, from `load_screen()`.
 - `θ::Array{Float64,1}`: the true success fraction of each of the 20 conditions.
 - `pbsf_free::Array{Int64,1}`: the columns of the PBSF-free conditions in the full table.
 - `game::NamedTuple`: the main screen, with all 20 conditions.

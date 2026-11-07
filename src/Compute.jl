@@ -46,7 +46,7 @@ Throws an `ArgumentError` if `yields` has no rows or no columns.
 ```julia
 screen = load_screen();
 θ = success_fractions(screen.yields); # one fraction per condition
-θ[19] # PBSF/BTMG works on 23 of the 37 alcohols: 23/37 ≈ 0.622
+θ[19] # PBSF/BTMG gives at least 50% yield on 23 of the 37 alcohols: 23/37 ≈ 0.622
 ```
 """
 function success_fractions(yields::Array{Float64,2}; cutoff::Float64 = 50.0)
@@ -79,16 +79,16 @@ end
 Play a binary Bernoulli bandit with `K` arms for `T` rounds using Thompson sampling.
 This is the function from Task 3 of the L10d lab.
 
-Each arm (condition) succeeds (reward `1`) with a probability that only the world
-knows, and fails (reward `0`) otherwise. The agent describes what it believes about
+Each arm (condition) succeeds (reward `1`) with a probability that the agent does not
+know, and fails (reward `0`) otherwise. The agent describes what it believes about
 the success probability of arm `a` with a Beta distribution:
 
 - before any experiments, its belief (the prior) is `Beta(α[a], β[a])`;
 - after `S[a]` successes and `F[a]` failures on arm `a`, its updated belief (the
   posterior) is `Beta(α[a] + S[a], β[a] + F[a])`.
 
-In each round `t = 1, 2, ..., T`, carry out the four steps of the lecture's algorithm,
-drawing random numbers in exactly this order:
+In each round `t = 1, 2, ..., T`, carry out these four steps, drawing random numbers in
+exactly this order:
 
 1. Draw one sample `p[a]` from the posterior of every arm, for `a = 1, 2, ..., K` in
    order: `p[a] = rand(rng, Beta(α[a] + S[a], β[a] + F[a]))`.
@@ -174,22 +174,22 @@ end
         α::Array{Float64,1} = ones(K), β::Array{Float64,1} = ones(K)) -> NamedTuple
 
 Play Thompson sampling in blocks: `plates` reaction blocks of `wells` experiments each,
-`plates * wells` experiments in all. Every well in a block is chosen before any
-experiment in the block runs, and the block's results update the counts together,
-after the whole block.
+`plates * wells` experiments in all. The arm of every well in a block is chosen before
+any experiment in the block runs, and the counts update only after the whole block,
+with all of its results.
 
 For each block, draw random numbers and run the experiments in exactly this order:
 
 1. Choose the arm of every well, for well `w = 1, 2, ..., wells` in order. For each
    well, draw one sample from the posterior of every arm, in arm order,
    `p[a] = rand(rng, Beta(α[a] + S[a], β[a] + F[a]))`, and choose `argmax(p)`. Every
-   well uses the counts `S` and `F` from the start of the block. Each well draws its
-   own samples, so two wells can choose different arms.
+   well uses the counts `S` and `F` from the start of the block. Each well gets its own
+   samples, so two wells can get different arms.
 2. Run the wells in well order: call `world` once for each well's arm.
 3. Update the counts with every result of the block.
 
 Do not call `world` until every well in the block has its arm: an earlier call
-changes the order of the random numbers, and the game no longer matches.
+changes the order of the random numbers, and your results no longer match the tests.
 
 With one well per block, this is the same game as `my_thompson_sampling`, with the
 same random numbers in the same order.

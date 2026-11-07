@@ -1,5 +1,5 @@
-The reaction data in data/deoxyfluorination.csv come from a published
-high-throughput screen of deoxyfluorination reactions.
+The reaction data in data/deoxyfluorination.csv come from published
+high-throughput deoxyfluorination experiments.
 
 Measurements: Nielsen, M. K., Ahneman, D. T., Riera, O., and Doyle, A. G.
   (2018). Deoxyfluorination with sulfonyl fluorides: navigating reaction space

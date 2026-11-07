@@ -98,7 +98,7 @@ end
 """
     fixed_world(rewards::Array{Int64,1}) -> Function
 
-Return a world with no randomness: condition `a` always returns `rewards[a]`.
+Return a world with no randomness: `world(a)` always returns `rewards[a]`.
 """
 function fixed_world(rewards::Array{Int64,1})
     return a -> rewards[a];
