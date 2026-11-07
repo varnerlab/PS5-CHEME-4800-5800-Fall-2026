@@ -126,11 +126,6 @@ fraction of the 37 alcohols that condition $a$ fluorinates in at least 50%
 yield. For example, condition 1 (3-Cl/DBU) gives at least 50% yield on 4 of the
 37 alcohols, so the true success fraction of condition 1 is 4/37, about 0.11.
 
-Each simulated run draws one of the 37 alcohols with equal chance. So $\theta_a$
-is also the probability that one run with condition $a$ succeeds. The company
-never sees $\theta_a$, only whether each run succeeded. You compute $\theta_a$ in
-Part 1.
-
 The simulator is the function `run_reaction(yields, a, rng)`
 ([src/Lab.jl](src/Lab.jl)). For condition `a`, `run_reaction` draws the alcohol with
 `i = rand(rng, 1:37)` and returns `1` if `yields[i, a] >= 50.0` and `0` otherwise.
