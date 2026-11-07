@@ -109,16 +109,26 @@ data into `screen`, which has these fields:
 | `screen.sulfonyl_fluorides`, `screen.bases` | The sulfonyl fluoride and the base of each column. |
 | `screen.alcohols`, `screen.smiles` | The alcohol IDs (`s1` to `s37`) and their structures as SMILES (Simplified Molecular Input Line Entry System) strings, a text code for molecules. |
 
-**Condition `a` is column `a` of `screen.yields`.** Columns 1–4 use 3-Cl, 5–8
-PyFluor, 9–12 3-CF3, 13–16 3-NO2, and 17–20 PBSF. Within each group of four, the
-bases are DBU, MTBD, BTMG, and BTPP, in that order. For example, column 19 is
-PBSF/BTMG.
+Each condition has a number, `a`, which is its column in `screen.yields`:
 
-The **true success fraction** $\theta_a$ of condition $a$ is the fraction of the
-37 alcohols on which it gives a yield of at least 50%. Because the simulator
-draws every alcohol with the same chance, $\theta_a$ is also the success
-probability of one run with condition $a$. Only we know it; the company sees
-only the reward of each run.
+| Sulfonyl fluoride | DBU | MTBD | BTMG | BTPP |
+|---|---|---|---|---|
+| 3-Cl | 1 | 2 | 3 | 4 |
+| PyFluor | 5 | 6 | 7 | 8 |
+| 3-CF3 | 9 | 10 | 11 | 12 |
+| 3-NO2 | 13 | 14 | 15 | 16 |
+| PBSF | 17 | 18 | 19 | 20 |
+
+For example, condition 19 is PBSF/BTMG, and its yields are in column 19.
+
+The **true success fraction** of condition $a$, written $\theta_a$, is the
+fraction of the 37 alcohols that it fluorinates in at least 50% yield. For
+example, condition 1 (3-Cl/DBU) gives at least 50% yield on 4 of the 37
+alcohols, so its true success fraction is 4/37, about 0.11. Each simulated run
+draws one of the 37 alcohols with equal chance, so $\theta_a$ is also the
+probability that one run with condition $a$ succeeds. The company never sees
+$\theta_a$; it sees only whether each run succeeded. You compute $\theta_a$ in
+Part 1.
 
 The simulator is the function `run_reaction(yields, a, rng)`
 ([src/Lab.jl](src/Lab.jl)). For condition `a`, it draws the alcohol with
