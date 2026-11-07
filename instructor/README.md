@@ -19,8 +19,7 @@ answers.
 - Read [the problem statement](../README.md), [rubric](../RUBRIC.md), and
   [questions](../responses.md).
 - Inspect the reference reports in [reference/](reference/):
-  [posteriors](reference/posteriors.png), [gap loss](reference/gap-loss.png),
-  and the CSV tables.
+  [posteriors](reference/posteriors.png) and the CSV tables.
 - The local, Git-ignored [reference solution](../solution/README.md) contains
   completed code, sample written responses, and the reference numbers.
 - [The student ZIP](artifacts/PS5-CHEME-4800-5800-Fall-2026-student.zip)

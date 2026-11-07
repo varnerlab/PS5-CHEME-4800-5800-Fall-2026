@@ -27,8 +27,7 @@ Compute the true success fraction θₐ of each condition: the fraction of alcoh
 which condition `a` gives a yield of at least `cutoff` percent.
 
 The agent never sees these fractions; it sees only the reward of each experiment. The
-reports use them to check what the agent learned and to count the successes it lost
-while learning.
+reports use them to check what the agent learned.
 
 ### Arguments
 - `yields::Array{Float64,2}`: the yield table, one row per alcohol and one column per

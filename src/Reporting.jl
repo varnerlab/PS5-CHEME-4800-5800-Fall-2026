@@ -6,7 +6,7 @@
 module ScreenReports
 
 using Distributions # Beta, for the posterior curves
-using Plots         # posterior curves and gap-loss curves
+using Plots         # posterior curves
 using Printf        # tables with a fixed number of decimals
 using Random        # MersenneTwister, one generator per screen
 
@@ -25,7 +25,7 @@ const PBSF_FREE = 1:16;       # columns of the 16 conditions without PBSF
 
 # Every file write_outputs creates; the checker clears exactly these before a run -
 const REPORT_FILES = ["conditions.csv", "screen-summary.csv", "posteriors.png",
-    "plate-sizes.csv", "gap-loss.png", "pbsf-ban.csv"];
+    "plate-sizes.csv", "pbsf-ban.csv"];
 
 """
     write_outputs(assignment, directory) -> NamedTuple
@@ -40,7 +40,7 @@ Run the screens with the student's functions and write every report.
 ### Returns
 The named tuple `(pick, pick_probability, pbsf_free_pick)`: the name of the main
 screen's pick, its probability of being best, and the name of the PBSF-free screen's
-pick. The function also writes or overwrites the six files in `REPORT_FILES` and
+pick. The function also writes or overwrites the five files in `REPORT_FILES` and
 prints its progress and a summary.
 
 ### Errors
@@ -180,9 +180,9 @@ end
 """
     write_conditions(directory, screen, θ)
 
-Write `conditions.csv`: each condition, its reagents, the number of alcohols it
-fluorinates with a yield of at least the cutoff, its true success fraction, and its gap
-(the best success fraction minus its own).
+Write `conditions.csv`: each condition, its reagents, the number of alcohols that the
+condition fluorinates with a yield of at least the cutoff, and its true success
+fraction.
 
 ### Arguments
 - `directory::String`: the output folder.
@@ -191,14 +191,13 @@ fluorinates with a yield of at least the cutoff, its true success fraction, and 
 """
 function write_conditions(directory, screen, θ)
     n = size(screen.yields, 1); # the number of alcohols
-    best = maximum(θ); # the highest true success fraction
 
     # Write one header line, then one line per condition -
     io = open(joinpath(directory, "conditions.csv"), "w");
-    println(io, "condition,sulfonyl_fluoride,base,alcohols_at_or_above_cutoff,alcohols,true_success_fraction,gap");
+    println(io, "condition,sulfonyl_fluoride,base,alcohols_at_or_above_cutoff,alcohols,true_success_fraction");
     for a in 1:length(θ)
-        @printf(io, "%s,%s,%s,%d,%d,%.4f,%.4f\n", screen.conditions[a], screen.sulfonyl_fluorides[a],
-            screen.bases[a], round(Int, θ[a] * n), n, θ[a], best - θ[a]);
+        @printf(io, "%s,%s,%s,%d,%d,%.4f\n", screen.conditions[a], screen.sulfonyl_fluorides[a],
+            screen.bases[a], round(Int, θ[a] * n), n, θ[a]);
     end
     close(io);
 end
@@ -284,9 +283,9 @@ end
     write_plate_sizes(directory, assignment, yields, θ)
 
 Run 100 screens of 480 experiments for each block size in `BLOCK_SIZES`, and write
-`plate-sizes.csv` and `gap-loss.png`. One well per block uses `my_thompson_sampling`;
-the other sizes use `plate_thompson_sampling`. The last table row is the equal split:
-every condition runs on the same number of alcohols, with no learning.
+`plate-sizes.csv`. One well per block uses `my_thompson_sampling`; the other sizes use
+`plate_thompson_sampling`. The last table row is the equal split: every condition runs
+on the same number of alcohols, with no learning.
 
 ### Arguments
 - `directory::String`: the output folder.
@@ -302,9 +301,8 @@ function write_plate_sizes(directory, assignment, yields, θ)
     sorted = sort(θ; rev = true);
     second_value = sorted[2]; # the second-highest success fraction
     screens = length(SCREEN_SEEDS);
-    mean_curves = zeros(EXPERIMENTS, length(BLOCK_SIZES)); # mean gap loss after each experiment
     io = open(joinpath(directory, "plate-sizes.csv"), "w");
-    println(io, "strategy,wells_per_block,blocks,days,mean_successes,mean_gap_loss,pick_is_best,pick_in_top_two");
+    println(io, "strategy,wells_per_block,blocks,days,mean_successes,pick_is_best,pick_in_top_two");
 
     # Run 100 screens for each block size -
     for k in 1:length(BLOCK_SIZES)
@@ -332,13 +330,8 @@ function write_plate_sizes(directory, assignment, yields, θ)
             best = assignment.probability_best(game.S, game.F, DRAWS_AVERAGE; rng = rng);
             pick = argmax(best);
 
-            # Add up the results: successes, gap loss after each experiment, and the pick -
+            # Add up the results: successes, and whether the pick is the best or second best -
             total_successes = total_successes + sum(game.rewards);
-            gap_loss = 0.0;
-            for t in 1:EXPERIMENTS
-                gap_loss = gap_loss + (best_value - θ[game.actions[t]]);
-                mean_curves[t, k] = mean_curves[t, k] + gap_loss / screens;
-            end
             if θ[pick] == best_value
                 picks_best = picks_best + 1;
             end
@@ -347,39 +340,15 @@ function write_plate_sizes(directory, assignment, yields, θ)
             end
         end
         # Write the averages over the 100 screens for this block size -
-        @printf(io, "thompson,%d,%d,%d,%.1f,%.1f,%.2f,%.2f\n", w, blocks, blocks * DAYS_PER_BLOCK,
-            total_successes / screens, mean_curves[EXPERIMENTS, k], picks_best / screens, picks_top_two / screens);
+        @printf(io, "thompson,%d,%d,%d,%.1f,%.2f,%.2f\n", w, blocks, blocks * DAYS_PER_BLOCK,
+            total_successes / screens, picks_best / screens, picks_top_two / screens);
     end
 
     # The equal split: the same number of runs on every condition, no learning -
     runs_each = div(EXPERIMENTS, K); # 480 / 20 = 24 runs per condition
-    equal_successes = runs_each * sum(θ);
-    equal_gap_loss = 0.0;
-    for a in 1:K
-        equal_gap_loss = equal_gap_loss + runs_each * (best_value - θ[a]); # the gap of condition a, 24 times
-    end
-    @printf(io, "equal_split,,,,%.1f,%.1f,,\n", equal_successes, equal_gap_loss);
+    equal_successes = runs_each * sum(θ); # the expected successes: 24 runs times each success fraction
+    @printf(io, "equal_split,,,,%.1f,,\n", equal_successes);
     close(io);
-
-    # Plot the mean gap loss after each experiment -
-    theme(:default);
-    figure = plot(; xlabel = "Experiments", ylabel = "Mean gap loss (extra failed runs)",
-        title = "Gap loss over $EXPERIMENTS experiments, mean of $screens screens",
-        legend = :topleft, size = (900, 520), framestyle = :box, titlefontsize = 11,
-        left_margin = 6 * Plots.mm, bottom_margin = 4 * Plots.mm);
-    for k in 1:length(BLOCK_SIZES)
-        w = BLOCK_SIZES[k];
-        days = div(EXPERIMENTS, w) * DAYS_PER_BLOCK;
-        label = "$w wells per block, $days days";
-        if w == 1
-            label = "1 well per block, $days days";
-        end
-        plot!(figure, 1:EXPERIMENTS, mean_curves[:, k]; lw = 2, color = k, label = label);
-    end
-    # The equal split adds the same gap with every experiment, so its curve is a straight line -
-    plot!(figure, [0, EXPERIMENTS], [0.0, equal_gap_loss]; lw = 2, ls = :dash, color = :black,
-        label = "equal split");
-    savefig(figure, joinpath(directory, "gap-loss.png"));
 end
 
 

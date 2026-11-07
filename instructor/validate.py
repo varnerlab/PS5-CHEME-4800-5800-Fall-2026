@@ -16,7 +16,7 @@ from build_student_package import ROOT, student_files
 LOGS = ROOT / "instructor/validation-output"
 LOGS.mkdir(exist_ok=True)
 REPORTS = {"conditions.csv", "screen-summary.csv", "posteriors.png", "plate-sizes.csv",
-           "gap-loss.png", "pbsf-ban.csv"}
+           "pbsf-ban.csv"}
 
 def stage(reference=False):
     """Copy the student package into a new temporary directory and return its Path.

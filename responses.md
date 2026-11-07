@@ -34,24 +34,22 @@ blank line after each question; the checker uses it to find your answer.
    TODO: Write your response.
 
 2. **What do reaction blocks cost?**
-   Use `plate-sizes.csv` from study 2 for the numbers and `gap-loss.png` to see
-   how the gap loss grows during a screen. The gap loss of a screen is the
-   expected number of extra failed experiments compared with running the best
-   condition in all 480 experiments. In `plate-sizes.csv`, each row with
+   Use `plate-sizes.csv` from study 2. In `plate-sizes.csv`, each row with
    `strategy` equal to `thompson` averages 100 Thompson sampling screens of 480
    experiments, all with the block size in `wells_per_block`; each block takes 2
    days. The row with `strategy` equal to `equal_split` is the baseline that runs
-   every condition on exactly 24 alcohols; its numbers are computed from the true
-   success fractions, not simulated.
+   every condition on exactly 24 alcohols; its `mean_successes` is computed from
+   the true success fractions, not simulated.
    - **(a)** For blocks of 1, 24, 96, and 480 wells, report the days the screen
-     takes (column `days`) and its mean gap loss (column `mean_gap_loss`). Also
-     report the gap loss of the equal split.
+     takes (column `days`) and its mean number of successes out of 480
+     experiments (column `mean_successes`). Also report the mean number of
+     successes for the equal split.
    - **(b)** In a block, the company draws a new sample from every posterior for
      each well, using the posteriors as they stand at the start of the block, and
      the posteriors update only after the whole block. Use these facts to explain
-     two results: (i) one 480-well block has about the same gap loss as the equal
-     split; (ii) 24-well blocks have about the same gap loss as 1-well blocks,
-     which run one reaction at a time.
+     two results: (i) one 480-well block gets about as many successes as the
+     equal split; (ii) 24-well blocks get about as many successes as 1-well
+     blocks, which run one reaction at a time.
 
    TODO: Write your response.
 

@@ -221,28 +221,21 @@ reports, one study per question. All three studies use these terms:
   condition, and it uses no results from any other screen. At the end,
   `probability_best` gives each condition's probability of being best, and the
   condition with the highest one is the screen's **pick**.
-- **Best condition**: the condition with the highest true success fraction,
-  $\mu^\star$. The company cannot see the true success fractions. The reports
-  show them so you can judge the company's choices.
-- **Gap** of condition $a$: $\Delta(a)=\mu^\star-\theta_a$, the average number
-  of successes per experiment that condition $a$ gives up compared with the best
-  condition.
-- **Gap loss** of a screen: $G(T)=\sum_{t=1}^{T}\Delta(a_t)$, the sum of the
-  gaps of the conditions used in the screen's experiments. The gap loss is the expected number of
-  extra failed experiments compared with using the best condition in every
-  experiment.
+- **Best condition**: the condition with the highest true success fraction. The
+  company cannot see the true success fractions. The reports show them so you
+  can judge the company's choices.
 
 | Study | Conditions | Screens | Wells per block | Reports | Question |
 |---|---|---|---|---|---|
 | 1. Main screen | All 20 | 1 | 24 | `screen-summary.csv`, `posteriors.png` | 1 |
-| 2. Block size | All 20 | 100 for each block size | 1, 6, 24, 96, or 480 | `plate-sizes.csv`, `gap-loss.png` | 2 |
+| 2. Block size | All 20 | 100 for each block size | 1, 6, 24, 96, or 480 | `plate-sizes.csv` | 2 |
 | 3. PBSF ban | The 16 without PBSF | 1 new screen, plus the counts from study 1 | 24 | `pbsf-ban.csv` | 3 |
 
 One more report, `conditions.csv`, comes from the yield table, not from a
 screen. The file has one row per condition, with these columns: `condition`,
 `sulfonyl_fluoride`, and `base`; `alcohols_at_or_above_cutoff`, the number of the
 37 alcohols that the condition fluorinates in at least 50% yield; `alcohols`,
-which is 37; `true_success_fraction`; and `gap`.
+which is 37; and `true_success_fraction`.
 
 ### Study 1: the main screen
 
@@ -280,21 +273,18 @@ random draws, and averages the results of the 100 screens. Each screen's pick us
 with 2,000 sets of samples.
 
 The comparison also has a baseline with no learning, the **equal split**: run
-every condition on 24 alcohols, 20 × 24 = 480 experiments. The equal split's gap loss is 24
-times the sum of the 20 gaps, computed from the true success fractions rather
-than simulated. Reports:
+every condition on 24 alcohols, 20 × 24 = 480 experiments. The script computes
+the equal split's expected number of successes, 24 times the sum of the 20 true
+success fractions, instead of simulating the equal split. Report:
 
 - `plate-sizes.csv`: one row per block size, with `strategy` equal to
   `thompson`, then one row for the equal split, with `strategy` equal to
   `equal_split`. The columns are `wells_per_block`, `blocks`, and `days`;
-  `mean_successes`, the successes per screen; `mean_gap_loss`, the gap loss
-  after all 480 experiments; `pick_is_best`, the fraction of screens whose pick
-  is the best condition; and `pick_in_top_two`, the fraction whose pick is the
-  best or the second-best condition. Each Thompson sampling row averages its 100
-  screens. The equal-split row fills in only `mean_successes` and
-  `mean_gap_loss`.
-- `gap-loss.png`: the mean gap loss after each of the 480 experiments, with one
-  curve for each block size and a dashed straight line for the equal split.
+  `mean_successes`, the mean number of successes in a screen of 480
+  experiments; `pick_is_best`, the fraction of screens whose pick is the best
+  condition; and `pick_in_top_two`, the fraction whose pick is the best or the
+  second-best condition. Each Thompson sampling row averages its 100 screens.
+  The equal-split row fills in only `mean_successes`.
 
 ### Study 3: the PBSF ban
 

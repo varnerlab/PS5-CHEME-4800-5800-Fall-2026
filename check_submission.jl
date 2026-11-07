@@ -139,7 +139,7 @@ end
 # Remove earlier reports so outputs/ holds only results from the code just checked -
 # (this list must match REPORT_FILES in src/Reporting.jl)
 for name in ("conditions.csv", "screen-summary.csv", "posteriors.png", "plate-sizes.csv",
-        "gap-loss.png", "pbsf-ban.csv")
+        "pbsf-ban.csv")
     rm(joinpath(CHECK_ROOT, "outputs", name); force=true);
 end
 report_status = "not generated because tests need attention";
