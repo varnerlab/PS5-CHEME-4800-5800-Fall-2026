@@ -66,11 +66,13 @@ different alcohols, from simple primary, secondary, and tertiary alcohols to
 drugs such as metronidazole and abiraterone: 740 reactions in all.
 
 Every reaction is run the same way. The alcohol is dissolved in tetrahydrofuran
-(THF) at 0.4 M. The amounts of sulfonyl fluoride and base are given in
-equivalents (equiv), the moles of reagent per mole of alcohol: each reaction uses
-1.1 equiv of sulfonyl fluoride (0.44 M) and 1.5 equiv of base (0.60 M). The
-mixture reacts at room temperature for 48 h. The sulfonyl fluoride turns the –OH into a sulfonate ester
-and releases fluoride, which then replaces the sulfonate. The 20 conditions pair
+(THF) so that its starting concentration is 0.4 M. The amounts of sulfonyl
+fluoride and base are given in equivalents (equiv), the moles of reagent per mole
+of alcohol: each reaction uses 1.1 equiv of sulfonyl fluoride and 1.5 equiv of
+base, so their starting concentrations are 0.44 M and 0.60 M. The mixture reacts
+at room temperature for 48 h. The sulfonyl fluoride turns the –OH into a
+sulfonate ester and releases fluoride, which then replaces the sulfonate. The 20
+conditions pair
 each of 5 sulfonyl fluorides with each of 4 bases. PS5 uses the paper's short
 label for each reagent:
 
