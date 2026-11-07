@@ -142,13 +142,14 @@ experiment: `world(a)` returns the reward of one run with condition `a`. The
 supplied code makes the world in one line:
 
 ```julia
-rng = MersenneTwister(5825); # one random number generator for the agent and the world
+rng = MersenneTwister(5825); # one random number generator for your functions and the world
 world = a -> run_reaction(screen.yields, a, rng); # world(a) runs one experiment with condition a
 ```
 
-The agent and the world share one generator, and each function draws its random
-numbers in the order its description gives. So every correct solution gets
-exactly the same numbers.
+Your functions and the world share this one generator. Each of your functions
+must draw its random numbers in the order that its description in
+[src/Compute.jl](src/Compute.jl) gives, so every correct solution gets exactly
+the same numbers.
 
 ## Part 1: Thompson sampling, one reaction at a time
 

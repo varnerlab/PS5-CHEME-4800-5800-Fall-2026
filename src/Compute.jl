@@ -7,6 +7,8 @@
 # Replace each placeholder error(...) with your implementation and return value.
 # The yield table, yields, has one row per alcohol and one column per condition, in percent.
 # A condition is one sulfonyl fluoride paired with one base; condition a is column a.
+# The agent is your Thompson sampling code. The agent chooses the condition for each
+# experiment and sees only the rewards, never the yield table.
 # The world is a function of the condition: world(a) runs one experiment with
 # condition a and returns its reward, 1 for a success or 0 for a failure. The
 # supplied code makes it from the yield table, as the L10d lab did with bernoulli_world:
